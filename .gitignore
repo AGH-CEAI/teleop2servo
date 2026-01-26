@@ -1,0 +1,10 @@
+devel/
+logs/
+build/
+bin/
+install/
+__pycache__
+*.sqlite
+log/
+*.log
+COLCON_IGNORE
