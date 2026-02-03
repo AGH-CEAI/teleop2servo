@@ -1,8 +1,26 @@
 teleop_keyboard:
   ros__parameters:
-    joint_cmd_topic: /servo_node/delta_joint_cmds
-    publish_hz: 100
-    cmd_timeout_ms: 200
+    publish_hz: 200
+
+    stop_moving_timeout_s: 2.0
+
+    # serwo topics
+    twist_topic: "/servo_node/delta_twist_cmds"
+    joint_topic: "/servo_node/delta_joint_cmds"
+    queue_size: 10
+
+    base_frame_id: "ur_base"
+    eef_frame_id: "tool0" # TODO
+
+    # speeds
+    joint_vel_step: 1.0
+    joint_vel_cont_slow: 1.0
+
+    twist_lin_step: 0.05
+    twist_lin_cont_slow: 1.0
+
+    twist_rot_step: 0.20
+    twist_rot_cont_slow: 0.35
 
     joint_names:
       - shoulder_pan_joint
@@ -11,20 +29,3 @@ teleop_keyboard:
       - wrist_1_joint
       - wrist_2_joint
       - wrist_3_joint
-
-    joint_velocity: 0.4   # rad/s
-    deadman_enabled: true
-
-    keymap:
-      joint0_plus: "1"
-      joint0_minus: "q"
-      joint1_plus: "2"
-      joint1_minus: "w"
-      joint2_plus: "3"
-      joint2_minus: "e"
-      joint3_plus: "4"
-      joint3_minus: "r"
-      joint4_plus: "5"
-      joint4_minus: "t"
-      joint5_plus: "6"
-      joint5_minus: "y"

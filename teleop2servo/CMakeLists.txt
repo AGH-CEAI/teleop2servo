@@ -9,22 +9,30 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(geometry_msgs REQUIRED)
+find_package(control_msgs REQUIRED)
+find_package(std_msgs REQUIRED)
 
 add_executable(teleop_keyboard_node
   src/teleop2servo_node.cpp
 )
-
 ament_target_dependencies(teleop_keyboard_node
   rclcpp
   std_msgs
+  control_msgs
+  geometry_msgs
 )
 
-install(TARGETS teleop_keyboard_node
+# TESTING
+add_executable(tester_sub src/tester_sub.cpp)
+ament_target_dependencies(tester_sub rclcpp std_msgs)
+
+install(TARGETS 
+  teleop_keyboard_node
+  tester_sub
   DESTINATION lib/${PROJECT_NAME}
 )
 
 install(DIRECTORY
-  launch
   config
   DESTINATION share/${PROJECT_NAME}
 )
