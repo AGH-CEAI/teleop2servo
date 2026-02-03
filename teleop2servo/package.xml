@@ -12,14 +12,13 @@
   <url type="bugtracker">https://github.com/AGH-CEAI/teleop2servo/issues</url>
 
   <author email="aradominski@agh.edu.pl">Antoni Radomiński-Lasek</author>
-  
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 
+  <depend>control_msgs</depend>
+  <depend>geometry_msgs</depend>
   <depend>rclcpp</depend>
   <depend>std_msgs</depend>
-  <depend>geometry_msgs</depend>
-  <depend>control_msgs</depend>
 
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>

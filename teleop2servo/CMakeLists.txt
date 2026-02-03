@@ -12,40 +12,24 @@ find_package(geometry_msgs REQUIRED)
 find_package(control_msgs REQUIRED)
 find_package(std_msgs REQUIRED)
 
-add_executable(teleop_keyboard_node
-  src/teleop2servo_node.cpp
-)
-ament_target_dependencies(teleop_keyboard_node
+add_executable(teleop_keyboard_node src/teleop2servo_node.cpp)
+ament_target_dependencies(
+  teleop_keyboard_node
   rclcpp
   std_msgs
   control_msgs
-  geometry_msgs
-)
+  geometry_msgs)
 
 # TESTING
 add_executable(tester_sub src/tester_sub.cpp)
 ament_target_dependencies(tester_sub rclcpp std_msgs)
 
-install(TARGETS 
-  teleop_keyboard_node
-  tester_sub
-  DESTINATION lib/${PROJECT_NAME}
-)
+install(TARGETS teleop_keyboard_node tester_sub DESTINATION lib/${PROJECT_NAME})
 
-install(DIRECTORY
-  config
-  DESTINATION share/${PROJECT_NAME}
-)
+install(DIRECTORY config DESTINATION share/${PROJECT_NAME})
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
-  # the following line skips the linter which checks for copyrights
-  # comment the line when a copyright and license is added to all source files
-  set(ament_cmake_copyright_FOUND TRUE)
-  # the following line skips cpplint (only works in a git repo)
-  # comment the line when this package is in a git repo and when
-  # a copyright and license is added to all source files
-  set(ament_cmake_cpplint_FOUND TRUE)
   ament_lint_auto_find_test_dependencies()
 endif()
 

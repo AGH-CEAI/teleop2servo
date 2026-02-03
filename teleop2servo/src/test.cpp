@@ -146,7 +146,7 @@ private:
   bool rotation_{false};                 // dotyczy BASE (toggle 'R')
   bool dirty_ui_{false};                 // jeśli true -> wypisz instrukcję ponownie
 
-  // Aktywna komenda "do serwa" (na razie tekst)
+  // Aktywna komenda "do serwa" (na razie text)
   bool have_active_cmd_{false};
   bool step_pending_one_shot_{false};    // w STEP publikujemy raz
   std::string active_cmd_;
@@ -178,7 +178,7 @@ private:
   void printInstructionAndStatus()
   {
     RCLCPP_INFO(get_logger(), "");
-    RCLCPP_INFO(get_logger(), "Controling robot via keyboard");
+    RCLCPP_INFO(get_logger(), "Controlling robot via keyboard");
     RCLCPP_INFO(get_logger(), "---------------------------");
     RCLCPP_INFO(get_logger(), "Control mode: %s | Speed mode: %s | Rotation: %s",
                 toString(control_mode_).c_str(),

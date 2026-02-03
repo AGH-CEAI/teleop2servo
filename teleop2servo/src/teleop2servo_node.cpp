@@ -104,7 +104,7 @@ enum class ControlMode { JOINTS, BASE };
 enum class SpeedMode {STEP, CONT_SLOW };
 
 enum class SpecialKey {
-  NONE, 
+  NONE,
   TAB,
   ARROW_UP,
   ARROW_DOWN,
@@ -180,7 +180,7 @@ public:
     this->get_parameter_or("twist_rot_cont_slow", twist_rot_cont_slow_, 0.35);
 
     buildKeymap();
-    
+
     // TESTING
     pub_ = this->create_publisher<std_msgs::msg::String>("/teleop_keyboard/event", 10);
 
@@ -200,7 +200,7 @@ public:
       std::chrono::milliseconds(1000 / hz),
       std::bind(&Teleop2ServoNode::publishLoop, this)
     );
-    
+
     last_input_time_ = this->now();
     printInstructionAndStatus();
   }
@@ -222,7 +222,7 @@ private:
   bool step_pending_one_shot_{false};
   rclcpp::Time step_lock_time_;
   char step_lock_char_;
-  
+
   // TESTING
   std::string active_cmd_testing;
 
@@ -273,7 +273,7 @@ private:
     joint_keymap_[static_cast<char>(KEYCODE_Y)] = {6, -1};
   }
 
-  void printInstructionAndStatus() 
+  void printInstructionAndStatus()
   {
     RCLCPP_INFO(get_logger(), "\n\n================ TELEOP KEYBOARD =================");
     RCLCPP_INFO(get_logger(), "Control mode : %s", toString(control_mode_).c_str());
@@ -304,8 +304,8 @@ private:
         step_lock_time_ = last_input_time_;
         continue;
       }
-      
-      // change the controll
+
+      // change the control
       switch (c) {
         case KEYCODE_TAB: switchControlMode(); continue;
         case KEYCODE_S: switchSpeedMode(); continue;
@@ -328,7 +328,7 @@ private:
   {
     if (speed_mode_ == SpeedMode::STEP) speed_mode_ = SpeedMode::CONT_SLOW;
     else speed_mode_ = SpeedMode::STEP;
-    
+
     stopMotion("speed switch");
     printInstructionAndStatus();
   }
@@ -378,16 +378,16 @@ private:
       if (speed_mode_ == SpeedMode::STEP) {
         step_lock_time_ = this->now();
         step_lock_char_ = c;
-        step_pending_one_shot_ = true;   // publick ones
+        step_pending_one_shot_ = true;   // public ones
       } else {
-        step_pending_one_shot_ = false;  // publick continusly
+        step_pending_one_shot_ = false;  // public continuously
       }
       return;
     }
 
     if (control_mode_ == ControlMode::BASE) {
-      // TODO implement arrow controling
-    } 
+      // TODO implement arrow controlling
+    }
   }
 
   void stopMotion(const std::string &reason)
@@ -404,7 +404,7 @@ private:
     return (speed_mode_ == SpeedMode::STEP) ? joint_vel_step_ : joint_vel_cont_slow_;
   }
 
-  // ----- Continous publish loop -----
+  // ----- Continuous publish loop -----
   void publishLoop()
   {
     if (!have_active_cmd_) return;
