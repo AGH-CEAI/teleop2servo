@@ -1,6 +1,6 @@
 teleop_keyboard:
   ros__parameters:
-    publish_hz: 200
+    publish_hz: 250
 
     stop_moving_timeout_s: 2.0
 
