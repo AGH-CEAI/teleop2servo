@@ -8,11 +8,13 @@ endif()
 # find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
-find_package(geometry_msgs REQUIRED)
 find_package(control_msgs REQUIRED)
+find_package(geometry_msgs REQUIRED)
 find_package(std_msgs REQUIRED)
 
-add_executable(teleop_keyboard_node src/teleop2servo_node.cpp)
+add_executable(teleop_keyboard_node src/main.cpp src/teleop2servo_node.cpp src/keyboard_reader.cpp
+                                    src/utils.cpp)
+
 ament_target_dependencies(
   teleop_keyboard_node
   rclcpp
@@ -20,13 +22,17 @@ ament_target_dependencies(
   control_msgs
   geometry_msgs)
 
+target_include_directories(
+  teleop_keyboard_node PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+                              $<INSTALL_INTERFACE:include>)
+
 # TESTING
-add_executable(tester_sub src/tester_sub.cpp)
+add_executable(tester_sub test/tester_sub.cpp)
 ament_target_dependencies(tester_sub rclcpp std_msgs)
 
 install(TARGETS teleop_keyboard_node tester_sub DESTINATION lib/${PROJECT_NAME})
-
 install(DIRECTORY config DESTINATION share/${PROJECT_NAME})
+install(DIRECTORY include/ DESTINATION include)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)

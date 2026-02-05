@@ -11,7 +11,7 @@
   <url type="repository">https://github.com/AGH-CEAI/teleop2servo</url>
   <url type="bugtracker">https://github.com/AGH-CEAI/teleop2servo/issues</url>
 
-  <author email="aradominski@agh.edu.pl">Antoni Radomiński-Lasek</author>
+  <author email="antonio.radominski@gmail.com">Antoni Radomiński-Lasek</author>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 

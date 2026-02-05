@@ -2,7 +2,8 @@ teleop_keyboard:
   ros__parameters:
     publish_hz: 250
 
-    stop_moving_timeout_s: 2.0
+    stop_moving_timeout_s: 0.4
+
 
     # serwo topics
     twist_topic: "/servo_node/delta_twist_cmds"
@@ -10,7 +11,7 @@ teleop_keyboard:
     queue_size: 10
 
     base_frame_id: "ur_base"
-    eef_frame_id: "tool0" # TODO
+    robotiq_handle_end_id: "tool0"
 
     # speeds
     joint_vel_step: 1.0
