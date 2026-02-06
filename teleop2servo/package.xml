@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>teleop2servo</name>
+  <version>0.0.0</version>
+  <description>ROS 2 teleoperation node for controlling a robot using MoveIt Servo with various input devices.</description>
+  <maintainer email="ceai@agh.edu.pl">AGH Center of Excellence in Artificial Intelligence</maintainer>
+  <license>Apache-2.0</license>
+
+  <url type="website">http://cdsi.agh.edu.pl</url>
+  <url type="repository">https://github.com/AGH-CEAI/teleop2servo</url>
+  <url type="bugtracker">https://github.com/AGH-CEAI/teleop2servo/issues</url>
+
+  <author email="antonio.radominski@gmail.com">Antoni Radomiński-Lasek</author>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <depend>control_msgs</depend>
+  <depend>geometry_msgs</depend>
+  <depend>rclcpp</depend>
+  <depend>std_msgs</depend>
+
+  <test_depend>ament_lint_auto</test_depend>
+  <test_depend>ament_lint_common</test_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>
