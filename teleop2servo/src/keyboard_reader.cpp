@@ -35,7 +35,7 @@ void KeyboardReader::stop()
     fcntl(STDIN_FILENO, F_SETFL, flags & ~O_NONBLOCK);
 }
 
-bool KeyboardReader::readKey(char &c)
+bool KeyboardReader::read_key(char &c)
 {
     if (!running_.load()) return false;
     const int n = ::read(STDIN_FILENO, &c, 1);

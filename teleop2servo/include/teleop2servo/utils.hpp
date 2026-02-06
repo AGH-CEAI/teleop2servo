@@ -30,8 +30,23 @@ struct ActiveCmd
     double ang_x{0}, ang_y{0}, ang_z{0};
 };
 
-std::string toString(ControlMode m);
-std::string toString(SpeedMode m);
+inline std::string to_string(ControlMode m)
+{
+  switch (m) {
+    case ControlMode::JOINTS: return "JOINTS";
+    case ControlMode::BASE: return "BASE";
+    default: return "UNKNOWN";
+  }
+}
+
+inline std::string to_string(SpeedMode m)
+{
+  switch (m) {
+    case SpeedMode::STEP: return "STEP";
+    case SpeedMode::CONT_SLOW: return "CONT_SLOW";
+    default: return "UNKNOWN";
+  }
+}
 
 
 } //namespace teleop2servo

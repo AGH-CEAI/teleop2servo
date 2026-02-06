@@ -12,8 +12,7 @@ find_package(control_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(std_msgs REQUIRED)
 
-add_executable(teleop_keyboard_node src/main.cpp src/teleop2servo_node.cpp src/keyboard_reader.cpp
-                                    src/utils.cpp)
+add_executable(teleop_keyboard_node src/main.cpp src/teleop2servo_node.cpp src/keyboard_reader.cpp)
 
 ament_target_dependencies(
   teleop_keyboard_node

@@ -3,7 +3,7 @@
 <package format="3">
   <name>teleop2servo</name>
   <version>0.0.0</version>
-  <description>TODO: Package description</description>
+  <description>ROS 2 teleoperation node for controlling a robot using MoveIt Servo with various input devices.</description>
   <maintainer email="ceai@agh.edu.pl">AGH Center of Excellence in Artificial Intelligence</maintainer>
   <license>Apache-2.0</license>
 

@@ -20,8 +20,8 @@ using teleop2servo::ControlMode;
 using teleop2servo::SpeedMode;
 using teleop2servo::ActiveCmd;
 using teleop2servo::ActiveCmdType;
-using teleop2servo::toString;
 using teleop2servo::JointMove;
+using teleop2servo::to_string;
 
 
 namespace teleop2servo
@@ -56,7 +56,7 @@ Teleop2ServoNode::Teleop2ServoNode()
   this->get_parameter_or("twist_rot_step", twist_rot_step_, 0.20);
   this->get_parameter_or("twist_rot_cont_slow", twist_rot_cont_slow_, 0.35);
 
-  buildKeymap();
+  build_keymap();
 
   // TESTING
   pub_ = this->create_publisher<std_msgs::msg::String>("/teleop_keyboard/event", 10);
@@ -67,17 +67,17 @@ Teleop2ServoNode::Teleop2ServoNode()
   keyboard_.start();
 
   key_timer_ = this->create_wall_timer(
-    5ms, std::bind(&Teleop2ServoNode::pollKeyboard, this)
+    5ms, std::bind(&Teleop2ServoNode::poll_keyboard, this)
   );
 
   const int hz = std::max(1, publish_hz_);
   pub_timer_ = this->create_wall_timer(
     std::chrono::milliseconds(1000 / hz),
-    std::bind(&Teleop2ServoNode::publishLoop, this)
+    std::bind(&Teleop2ServoNode::publish_loop, this)
   );
 
   last_input_time_ = this->now();
-  printInstructionAndStatus();
+  print_instruction_and_status();
 }
 
 Teleop2ServoNode::~Teleop2ServoNode()
@@ -85,7 +85,7 @@ Teleop2ServoNode::~Teleop2ServoNode()
   keyboard_.stop();
 }
 
-void Teleop2ServoNode::buildKeymap()
+void Teleop2ServoNode::build_keymap()
 {
   joint_keymap_[static_cast<char>(KEYCODE_1)] = {1, +1};
   joint_keymap_[static_cast<char>(KEYCODE_Q)] = {1, -1};
@@ -101,11 +101,11 @@ void Teleop2ServoNode::buildKeymap()
   joint_keymap_[static_cast<char>(KEYCODE_Y)] = {6, -1};
 }
 
-void Teleop2ServoNode::printInstructionAndStatus()
+void Teleop2ServoNode::print_instruction_and_status()
 {
   RCLCPP_INFO(get_logger(), "\n\n================ TELEOP KEYBOARD =================");
-  RCLCPP_INFO(get_logger(), "Control mode : %s", toString(control_mode_).c_str());
-  RCLCPP_INFO(get_logger(), "Speed mode   : %s", toString(speed_mode_).c_str());
+  RCLCPP_INFO(get_logger(), "Control mode : %s", to_string(control_mode_).c_str());
+  RCLCPP_INFO(get_logger(), "Speed mode   : %s", to_string(speed_mode_).c_str());
   RCLCPP_INFO(get_logger(), "Rotation     : %s", rotation_ ? "ON" : "OFF");
   RCLCPP_INFO(get_logger(), "---------------------------");
   RCLCPP_INFO(get_logger(), "TAB: switch control modes (JOINTS/BASE)");
@@ -121,10 +121,10 @@ void Teleop2ServoNode::printInstructionAndStatus()
   RCLCPP_INFO(get_logger(), "Ctrl+C to exit.");
 }
 
-void Teleop2ServoNode::pollKeyboard()
+void Teleop2ServoNode::poll_keyboard()
 {
   char c;
-  while (keyboard_.readKey(c)) {
+  while (keyboard_.read_key(c)) {
 
     last_input_time_ = this->now();
 
@@ -135,40 +135,40 @@ void Teleop2ServoNode::pollKeyboard()
 
     // change the control
     switch (c) {
-      case KEYCODE_SPACE: stopMotion("space"); continue;
-      case KEYCODE_TAB: switchControlMode(); continue;
-      case KEYCODE_S: switchSpeedMode(); continue;
-      default: handleCharKey(static_cast<char>(c)); continue;
+      case KEYCODE_SPACE: stop_motion("space"); continue;
+      case KEYCODE_TAB: switch_control_mode(); continue;
+      case KEYCODE_S: switch_speed_mode(); continue;
+      default: handle_char_key(static_cast<char>(c)); continue;
       }
   }
 }
 
-void Teleop2ServoNode::switchControlMode()
+void Teleop2ServoNode::switch_control_mode()
 {
   if (control_mode_ == ControlMode::JOINTS) control_mode_ = ControlMode::BASE;
   else control_mode_ = ControlMode::JOINTS;
 
-  stopMotion("mode switch");
-  printInstructionAndStatus();
+  stop_motion("mode switch");
+  print_instruction_and_status();
 }
 
-void Teleop2ServoNode::switchSpeedMode()
+void Teleop2ServoNode::switch_speed_mode()
 {
   if (speed_mode_ == SpeedMode::STEP) speed_mode_ = SpeedMode::CONT_SLOW;
   else speed_mode_ = SpeedMode::STEP;
 
-  stopMotion("speed switch");
-  printInstructionAndStatus();
+  stop_motion("speed switch");
+  print_instruction_and_status();
 }
 
-void Teleop2ServoNode::toogleRotation()
+void Teleop2ServoNode::toggle_rotation()
 {
   rotation_ = !rotation_;
-  stopMotion("rotation toggle");
-  printInstructionAndStatus();
+  stop_motion("rotation toggle");
+  print_instruction_and_status();
 }
 
-void Teleop2ServoNode::handleCharKey(char c)
+void Teleop2ServoNode::handle_char_key(char c)
 {
   if (control_mode_ == ControlMode::JOINTS){
     auto it = joint_keymap_.find(c);
@@ -182,7 +182,7 @@ void Teleop2ServoNode::handleCharKey(char c)
       // TESTING
       std::ostringstream ss;
       ss << "[JOINTS] J" << joint << " sign=" << (sign > 0 ? "+" : "-")
-        << " | speed=" << toString(speed_mode_);
+        << " | speed=" << to_string(speed_mode_);
 
       active_cmd_testing = ss.str();
       have_active_cmd_ = true;
@@ -214,11 +214,11 @@ void Teleop2ServoNode::handleCharKey(char c)
   }
 
   if (control_mode_ == ControlMode::BASE) {
-    // TODO implement arrow controlling
+    // TODO(issue#3) implement arrow controlling
   }
 }
 
-void Teleop2ServoNode::stopMotion(const std::string &reason)
+void Teleop2ServoNode::stop_motion(const std::string &reason)
 {
   (void)reason;
   have_active_cmd_ = false;
@@ -227,12 +227,12 @@ void Teleop2ServoNode::stopMotion(const std::string &reason)
   active_cmd_ = ActiveCmd{};
 }
 
-double Teleop2ServoNode::jointVelForSpeedMode() const
+double Teleop2ServoNode::joint_vel_for_speed_mode() const
 {
   return (speed_mode_ == SpeedMode::STEP) ? joint_vel_step_ : joint_vel_cont_slow_;
 }
 
-void Teleop2ServoNode::publishLoop()
+void Teleop2ServoNode::publish_loop()
 {
   if (!have_active_cmd_) return;
 
@@ -240,7 +240,7 @@ void Teleop2ServoNode::publishLoop()
   const double dt = (now - last_input_time_).seconds();
 
   if (speed_mode_ != SpeedMode::STEP && dt > stop_moving_timeout_s_) {
-    stopMotion("timeout");
+    stop_motion("timeout");
     return;
   }
 
@@ -250,7 +250,7 @@ void Teleop2ServoNode::publishLoop()
     msg.header.frame_id = base_frame_id_;  // often BASE frame is used for joint jog
 
     const int idx = active_cmd_.joint_index;
-    const double vel = jointVelForSpeedMode() * static_cast<double>(active_cmd_.joint_sign);
+    const double vel = joint_vel_for_speed_mode() * static_cast<double>(active_cmd_.joint_sign);
 
     msg.joint_names.push_back(joint_names_.at(idx));
     msg.velocities.push_back(vel);
@@ -263,7 +263,7 @@ void Teleop2ServoNode::publishLoop()
   // pub_->publish(msg);
 
   if (speed_mode_ == SpeedMode::STEP && step_pending_one_shot_) {
-    stopMotion("one step");
+    stop_motion("one step");
     return;
   }
 }

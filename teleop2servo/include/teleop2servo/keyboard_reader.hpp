@@ -17,7 +17,7 @@ public:
   void start();
   void stop();
 
-  bool readKey(char &c);
+  bool read_key(char &c);
 
 private:
   termios orig_{};

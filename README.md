@@ -1,5 +1,5 @@
 # teleop2servo
-ROS 2 keyboard teleoperation node for controlling a robot using MoveIt Servo.
+ROS 2 teleoperation node for controlling a robot using MoveIt Servo with various input devices.
 
 ## What it does
 * Sends JointJog and TwistStamped commands from keyboard input

@@ -74,16 +74,16 @@ private:
 
   std::unordered_map<char, JointMove> joint_keymap_;
 
-  void buildKeymap();
-  void printInstructionAndStatus();
-  void pollKeyboard();
-  void switchControlMode();
-  void switchSpeedMode();
-  void toogleRotation();
-  void handleCharKey(char c);
-  void stopMotion(const std::string &reason);
-  double jointVelForSpeedMode() const;
-  void publishLoop();
+  void build_keymap();
+  void print_instruction_and_status();
+  void poll_keyboard();
+  void switch_control_mode();
+  void switch_speed_mode();
+  void toggle_rotation();
+  void handle_char_key(char c);
+  void stop_motion(const std::string &reason);
+  double joint_vel_for_speed_mode() const;
+  void publish_loop();
 };
 
 } //namespace teleop2servo
