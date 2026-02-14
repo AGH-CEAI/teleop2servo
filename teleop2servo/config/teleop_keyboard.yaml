@@ -4,13 +4,12 @@ teleop_keyboard:
 
     stop_moving_timeout_s: 0.4
 
-
     # serwo topics
     twist_topic: "/servo_node/delta_twist_cmds"
     joint_topic: "/servo_node/delta_joint_cmds"
     queue_size: 10
 
-    base_frame_id: "ur_base"
+    base_frame_id: "base_link"
     robotiq_handle_end_id: "tool0"
 
     # speeds

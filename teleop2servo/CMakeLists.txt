@@ -7,9 +7,11 @@ endif()
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
-find_package(rclcpp REQUIRED)
 find_package(control_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(rclcpp_components REQUIRED)
+find_package(sensor_msgs REQUIRED)
 find_package(std_msgs REQUIRED)
 
 add_executable(teleop_keyboard_node src/main.cpp src/teleop2servo_node.cpp src/keyboard_reader.cpp)
@@ -25,13 +27,31 @@ target_include_directories(
   teleop_keyboard_node PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
                               $<INSTALL_INTERFACE:include>)
 
+add_library(servo_joystic_input SHARED src/servo_joystic_input.cpp)
+
+target_include_directories(
+  servo_joystic_input PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+                             $<INSTALL_INTERFACE:include>)
+
+target_compile_definitions(servo_joystic_input PRIVATE "RCLCPP_COMPONENTS_BUILDING_DLL")
+
+ament_target_dependencies(servo_joystic_input rclcpp rclcpp_components sensor_msgs)
+
+rclcpp_components_register_nodes(servo_joystic_input "teleop2servo::JoyToServoPubAegis")
+
 # TESTING
 add_executable(tester_sub test/tester_sub.cpp)
 ament_target_dependencies(tester_sub rclcpp std_msgs)
 
-install(TARGETS teleop_keyboard_node tester_sub DESTINATION lib/${PROJECT_NAME})
+install(
+  TARGETS teleop_keyboard_node tester_sub servo_joystic_input
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION lib/${PROJECT_NAME})
+
 install(DIRECTORY config DESTINATION share/${PROJECT_NAME})
 install(DIRECTORY include/ DESTINATION include)
+install(DIRECTORY launch/ DESTINATION share/${PROJECT_NAME})
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
