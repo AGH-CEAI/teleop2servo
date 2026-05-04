@@ -10,7 +10,7 @@ teleop_keyboard:
     queue_size: 10
 
     base_frame_id: "base_link"
-    robotiq_handle_end_id: "tool0"
+    ee_frame_id: "tool0"
 
     # speeds
     joint_vel_step: 1.0

@@ -12,7 +12,7 @@
 #include <std_msgs/msg/string.hpp>
 
 #include "teleop2servo/keyboard_config.hpp"
-#include "teleop2servo/teleop2servo_node.hpp"
+#include "teleop2servo/keyboard_teleop_node.hpp"
 
 
 using namespace std::chrono_literals;
@@ -23,12 +23,19 @@ using teleop2servo::ActiveCmdType;
 using teleop2servo::JointMove;
 using teleop2servo::to_string;
 
+#define COLOR_RESET   "\033[0m"
+#define COLOR_RED     "\033[31m"
+#define COLOR_GREEN   "\033[32m"
+#define COLOR_YELLOW  "\033[33m"
+#define COLOR_BLUE    "\033[34m"
+#define COLOR_CYAN    "\033[36m"
+#define COLOR_BOLD    "\033[1m"
 
 namespace teleop2servo
 {
 
-Teleop2ServoNode::Teleop2ServoNode()
-: Node("teleop_keyboard",
+KeyboardTeleopNode::KeyboardTeleopNode()
+: Node("keyboard_teleop",
         rclcpp::NodeOptions().automatically_declare_parameters_from_overrides(true))
 {
   // load parameters
@@ -59,7 +66,7 @@ Teleop2ServoNode::Teleop2ServoNode()
   build_keymap();
 
   // TESTING
-  pub_ = this->create_publisher<std_msgs::msg::String>("/teleop_keyboard/event", 10);
+  pub_ = this->create_publisher<std_msgs::msg::String>("/keyboard_teleop/event", 10);
 
   twist_pub_ = this->create_publisher<geometry_msgs::msg::TwistStamped>(twist_topic_, queue_size_);
   joint_pub_ = this->create_publisher<control_msgs::msg::JointJog>(joint_topic_, queue_size_);
@@ -67,25 +74,25 @@ Teleop2ServoNode::Teleop2ServoNode()
   keyboard_.start();
 
   key_timer_ = this->create_wall_timer(
-    5ms, std::bind(&Teleop2ServoNode::poll_keyboard, this)
+    5ms, std::bind(&KeyboardTeleopNode::poll_keyboard, this)
   );
 
   const int hz = std::max(1, publish_hz_);
   pub_timer_ = this->create_wall_timer(
     std::chrono::milliseconds(1000 / hz),
-    std::bind(&Teleop2ServoNode::publish_loop, this)
+    std::bind(&KeyboardTeleopNode::publish_loop, this)
   );
 
   last_input_time_ = this->now();
   print_instruction_and_status();
 }
 
-Teleop2ServoNode::~Teleop2ServoNode()
+KeyboardTeleopNode::~KeyboardTeleopNode()
 {
   keyboard_.stop();
 }
 
-void Teleop2ServoNode::build_keymap()
+void KeyboardTeleopNode::build_keymap()
 {
   joint_keymap_[static_cast<char>(KEYCODE_1)] = {1, +1};
   joint_keymap_[static_cast<char>(KEYCODE_Q)] = {1, -1};
@@ -101,12 +108,17 @@ void Teleop2ServoNode::build_keymap()
   joint_keymap_[static_cast<char>(KEYCODE_Y)] = {6, -1};
 }
 
-void Teleop2ServoNode::print_instruction_and_status()
+void KeyboardTeleopNode::print_instruction_and_status()
 {
   RCLCPP_INFO(get_logger(), "\n\n================ TELEOP KEYBOARD =================");
-  RCLCPP_INFO(get_logger(), "Control mode : %s", to_string(control_mode_).c_str());
-  RCLCPP_INFO(get_logger(), "Speed mode   : %s", to_string(speed_mode_).c_str());
-  RCLCPP_INFO(get_logger(), "Rotation     : %s", rotation_ ? "ON" : "OFF");
+  RCLCPP_INFO(get_logger(),
+    "Mode: " COLOR_CYAN "%s" COLOR_RESET
+    " | Speed: " COLOR_YELLOW "%s" COLOR_RESET
+    " | Rotation: %s",
+    to_string(control_mode_).c_str(),
+    to_string(speed_mode_).c_str(),
+    rotation_ ? COLOR_GREEN "ON" COLOR_RESET : COLOR_RED "OFF" COLOR_RESET
+  );
   RCLCPP_INFO(get_logger(), "---------------------------");
   RCLCPP_INFO(get_logger(), "TAB: switch control modes (JOINTS/BASE)");
   RCLCPP_INFO(get_logger(), "--- Joint control keymap:");
@@ -121,7 +133,7 @@ void Teleop2ServoNode::print_instruction_and_status()
   RCLCPP_INFO(get_logger(), "Ctrl+C to exit.");
 }
 
-void Teleop2ServoNode::poll_keyboard()
+void KeyboardTeleopNode::poll_keyboard()
 {
   char c;
   while (keyboard_.read_key(c)) {
@@ -137,13 +149,13 @@ void Teleop2ServoNode::poll_keyboard()
     switch (c) {
       case KEYCODE_SPACE: stop_motion("space"); continue;
       case KEYCODE_TAB: switch_control_mode(); continue;
-      case KEYCODE_S: switch_speed_mode(); continue;
+      case KEYCODE_CAPITAL_S: switch_speed_mode(); continue;
       default: handle_char_key(static_cast<char>(c)); continue;
       }
   }
 }
 
-void Teleop2ServoNode::switch_control_mode()
+void KeyboardTeleopNode::switch_control_mode()
 {
   if (control_mode_ == ControlMode::JOINTS) control_mode_ = ControlMode::BASE;
   else control_mode_ = ControlMode::JOINTS;
@@ -152,7 +164,7 @@ void Teleop2ServoNode::switch_control_mode()
   print_instruction_and_status();
 }
 
-void Teleop2ServoNode::switch_speed_mode()
+void KeyboardTeleopNode::switch_speed_mode()
 {
   if (speed_mode_ == SpeedMode::STEP) speed_mode_ = SpeedMode::CONT_SLOW;
   else speed_mode_ = SpeedMode::STEP;
@@ -161,14 +173,14 @@ void Teleop2ServoNode::switch_speed_mode()
   print_instruction_and_status();
 }
 
-void Teleop2ServoNode::toggle_rotation()
+void KeyboardTeleopNode::toggle_rotation()
 {
   rotation_ = !rotation_;
   stop_motion("rotation toggle");
   print_instruction_and_status();
 }
 
-void Teleop2ServoNode::handle_char_key(char c)
+void KeyboardTeleopNode::handle_char_key(char c)
 {
   if (control_mode_ == ControlMode::JOINTS){
     auto it = joint_keymap_.find(c);
@@ -218,7 +230,7 @@ void Teleop2ServoNode::handle_char_key(char c)
   }
 }
 
-void Teleop2ServoNode::stop_motion(const std::string &reason)
+void KeyboardTeleopNode::stop_motion(const std::string &reason)
 {
   (void)reason;
   have_active_cmd_ = false;
@@ -227,12 +239,12 @@ void Teleop2ServoNode::stop_motion(const std::string &reason)
   active_cmd_ = ActiveCmd{};
 }
 
-double Teleop2ServoNode::joint_vel_for_speed_mode() const
+double KeyboardTeleopNode::joint_vel_for_speed_mode() const
 {
   return (speed_mode_ == SpeedMode::STEP) ? joint_vel_step_ : joint_vel_cont_slow_;
 }
 
-void Teleop2ServoNode::publish_loop()
+void KeyboardTeleopNode::publish_loop()
 {
   if (!have_active_cmd_) return;
 

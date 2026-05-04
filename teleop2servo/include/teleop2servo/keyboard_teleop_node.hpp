@@ -1,5 +1,5 @@
-#ifndef TELEOP2SERVO__TELEOP2SERVO_NODE_HPP_
-#define TELEOP2SERVO__TELEOP2SERVO_NODE_HPP_
+#ifndef TELEOP2SERVO__KEYBOARD_TELEOP_NODE_HPP_
+#define TELEOP2SERVO__KEYBOARD_TELEOP_NODE_HPP_
 
 #include <memory>
 #include <string>
@@ -21,11 +21,11 @@
 namespace teleop2servo
 {
 
-class Teleop2ServoNode : public rclcpp::Node
+class KeyboardTeleopNode : public rclcpp::Node
 {
 public:
-  Teleop2ServoNode();
-  ~Teleop2ServoNode() override;
+  KeyboardTeleopNode();
+  ~KeyboardTeleopNode() override;
 
 private:
   ControlMode control_mode_{ControlMode::JOINTS};
@@ -88,4 +88,4 @@ private:
 
 } //namespace teleop2servo
 
-#endif  // TELEOP2SERVO__TELEOP2SERVO_NODE_HPP_
+#endif  // TELEOP2SERVO__KEYBOARD_TELEOP_NODE_HPP_

@@ -12,8 +12,9 @@ struct JointMove
   int sign;    // +1 or -1
 };
 
-enum class ControlMode { JOINTS, BASE };
-enum class SpeedMode {STEP, CONT_SLOW };
+enum class ControlMode { JOINTS, BASE, TOOL};
+enum class SpeedMode {STEP, CONT_SLOW};
+enum class SpeedContValue {P10, P25, P50};
 
 enum class ActiveCmdType { NONE, JOINT, TWIST };
 
