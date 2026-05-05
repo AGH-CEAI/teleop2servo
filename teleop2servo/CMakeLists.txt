@@ -14,7 +14,7 @@ find_package(rclcpp_components REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(std_msgs REQUIRED)
 
-add_executable(keyboard_teleop_node src/main.cpp src/keyboard_teleop_node.cpp
+add_executable(keyboard_teleop_node src/keyboard_teleop_main.cpp src/keyboard_teleop_node.cpp
                                     src/keyboard_reader.cpp)
 
 ament_target_dependencies(

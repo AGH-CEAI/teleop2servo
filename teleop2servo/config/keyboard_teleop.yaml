@@ -1,8 +1,8 @@
-teleop_keyboard:
+keyboard_teleop:
   ros__parameters:
     publish_hz: 250
 
-    stop_moving_timeout_s: 0.4
+    stop_moving_timeout_s: 0.2
 
     # serwo topics
     twist_topic: "/servo_node/delta_twist_cmds"
@@ -13,14 +13,14 @@ teleop_keyboard:
     ee_frame_id: "tool0"
 
     # speeds
-    joint_vel_step: 1.0
-    joint_vel_cont_slow: 1.0
+    joint_vel_step: 0.15
+    joint_vel_cont_max: 1.0
 
-    twist_lin_step: 0.05
-    twist_lin_cont_slow: 1.0
+    twist_lin_step: 0.02
+    twist_lin_cont_max: 0.08
 
-    twist_rot_step: 0.20
-    twist_rot_cont_slow: 0.35
+    twist_rot_step: 0.08
+    twist_rot_cont_max: 0.20
 
     joint_names:
       - shoulder_pan_joint

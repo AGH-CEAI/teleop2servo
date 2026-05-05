@@ -13,6 +13,7 @@
 
 #include "teleop2servo/keyboard_config.hpp"
 #include "teleop2servo/keyboard_teleop_node.hpp"
+#include "teleop2servo/utils.hpp"
 
 
 using namespace std::chrono_literals;
@@ -21,15 +22,8 @@ using teleop2servo::SpeedMode;
 using teleop2servo::ActiveCmd;
 using teleop2servo::ActiveCmdType;
 using teleop2servo::JointMove;
+using teleop2servo::next;
 using teleop2servo::to_string;
-
-#define COLOR_RESET   "\033[0m"
-#define COLOR_RED     "\033[31m"
-#define COLOR_GREEN   "\033[32m"
-#define COLOR_YELLOW  "\033[33m"
-#define COLOR_BLUE    "\033[34m"
-#define COLOR_CYAN    "\033[36m"
-#define COLOR_BOLD    "\033[1m"
 
 namespace teleop2servo
 {
@@ -38,50 +32,12 @@ KeyboardTeleopNode::KeyboardTeleopNode()
 : Node("keyboard_teleop",
         rclcpp::NodeOptions().automatically_declare_parameters_from_overrides(true))
 {
-  // load parameters
-  this->get_parameter_or("publish_hz", publish_hz_, 100);
-  this->get_parameter_or("stop_moving_timeout_s", stop_moving_timeout_s_, 2.0);
-
-  this->get_parameter_or("twist_topic", twist_topic_, std::string("/servo_node/delta_twist_cmds"));
-  this->get_parameter_or("joint_topic", joint_topic_, std::string("/servo_node/delta_joint_cmds"));
-  this->get_parameter_or("queue_size", queue_size_, 10);
-
-  this->get_parameter_or("base_frame_id", base_frame_id_, std::string("base"));
-  this->get_parameter_or("eef_frame_id", eef_frame_id_, std::string("tool0"));
-
-  this->get_parameter_or("joint_names", joint_names_, std::vector<std::string>{
-    "shoulder_pan_joint", "shoulder_lift_joint", "elbow_joint",
-    "wrist_1_joint", "wrist_2_joint", "wrist_3_joint"
-  });
-
-  this->get_parameter_or("joint_vel_step", joint_vel_step_, 0.5);
-  this->get_parameter_or("joint_vel_cont_slow", joint_vel_cont_slow_, 1.0);
-
-  this->get_parameter_or("twist_lin_step", twist_lin_step_, 0.05);
-  this->get_parameter_or("twist_lin_cont_slow", twist_lin_cont_slow_, 0.10);
-
-  this->get_parameter_or("twist_rot_step", twist_rot_step_, 0.20);
-  this->get_parameter_or("twist_rot_cont_slow", twist_rot_cont_slow_, 0.35);
-
+  load_parameters();
   build_keymap();
-
-  // TESTING
-  pub_ = this->create_publisher<std_msgs::msg::String>("/keyboard_teleop/event", 10);
-
-  twist_pub_ = this->create_publisher<geometry_msgs::msg::TwistStamped>(twist_topic_, queue_size_);
-  joint_pub_ = this->create_publisher<control_msgs::msg::JointJog>(joint_topic_, queue_size_);
+  setup_publishers();
+  setup_timers();
 
   keyboard_.start();
-
-  key_timer_ = this->create_wall_timer(
-    5ms, std::bind(&KeyboardTeleopNode::poll_keyboard, this)
-  );
-
-  const int hz = std::max(1, publish_hz_);
-  pub_timer_ = this->create_wall_timer(
-    std::chrono::milliseconds(1000 / hz),
-    std::bind(&KeyboardTeleopNode::publish_loop, this)
-  );
 
   last_input_time_ = this->now();
   print_instruction_and_status();
@@ -90,6 +46,33 @@ KeyboardTeleopNode::KeyboardTeleopNode()
 KeyboardTeleopNode::~KeyboardTeleopNode()
 {
   keyboard_.stop();
+}
+
+void KeyboardTeleopNode::load_parameters()
+{
+  this->get_parameter_or("publish_hz", publish_hz_, 250);
+  this->get_parameter_or("stop_moving_timeout_s", stop_moving_timeout_s_, 0.2);
+
+  this->get_parameter_or("twist_topic", twist_topic_, std::string("/servo_node/delta_twist_cmds"));
+  this->get_parameter_or("joint_topic", joint_topic_, std::string("/servo_node/delta_joint_cmds"));
+  this->get_parameter_or("queue_size", queue_size_, 10);
+
+  this->get_parameter_or("base_frame_id", base_frame_id_, std::string("base_link"));
+  this->get_parameter_or("ee_frame_id", ee_frame_id_, std::string("tool0"));
+
+  this->get_parameter_or("joint_names", joint_names_, std::vector<std::string>{
+    "shoulder_pan_joint", "shoulder_lift_joint", "elbow_joint",
+    "wrist_1_joint", "wrist_2_joint", "wrist_3_joint"
+  });
+
+  this->get_parameter_or("joint_vel_step", joint_vel_step_, 1.0);
+  this->get_parameter_or("joint_vel_cont_max", joint_vel_cont_max_, 1.0);
+
+  this->get_parameter_or("twist_lin_step", twist_lin_step_, 0.05);
+  this->get_parameter_or("twist_lin_cont_max", twist_lin_cont_max_, 1.0);
+
+  this->get_parameter_or("twist_rot_step", twist_rot_step_, 0.20);
+  this->get_parameter_or("twist_rot_cont_max", twist_rot_cont_max_, 0.35);
 }
 
 void KeyboardTeleopNode::build_keymap()
@@ -108,29 +91,74 @@ void KeyboardTeleopNode::build_keymap()
   joint_keymap_[static_cast<char>(KEYCODE_Y)] = {6, -1};
 }
 
+void KeyboardTeleopNode::setup_publishers()
+{
+  debug_pub_ = this->create_publisher<std_msgs::msg::String>("/keyboard_teleop/event", 10);
+
+  twist_pub_ = this->create_publisher<geometry_msgs::msg::TwistStamped>(twist_topic_, queue_size_);
+  joint_pub_ = this->create_publisher<control_msgs::msg::JointJog>(joint_topic_, queue_size_);
+}
+
+void KeyboardTeleopNode::setup_timers()
+{
+  key_timer_ = this->create_wall_timer(
+    5ms, std::bind(&KeyboardTeleopNode::poll_keyboard, this)
+  );
+
+  const int hz = std::max(1, publish_hz_);
+  pub_timer_ = this->create_wall_timer(
+    std::chrono::milliseconds(1000 / hz),
+    std::bind(&KeyboardTeleopNode::publish_loop, this)
+  );
+}
+
 void KeyboardTeleopNode::print_instruction_and_status()
 {
-  RCLCPP_INFO(get_logger(), "\n\n================ TELEOP KEYBOARD =================");
-  RCLCPP_INFO(get_logger(),
-    "Mode: " COLOR_CYAN "%s" COLOR_RESET
-    " | Speed: " COLOR_YELLOW "%s" COLOR_RESET
-    " | Rotation: %s",
-    to_string(control_mode_).c_str(),
-    to_string(speed_mode_).c_str(),
-    rotation_ ? COLOR_GREEN "ON" COLOR_RESET : COLOR_RED "OFF" COLOR_RESET
-  );
-  RCLCPP_INFO(get_logger(), "---------------------------");
-  RCLCPP_INFO(get_logger(), "TAB: switch control modes (JOINTS/BASE)");
-  RCLCPP_INFO(get_logger(), "--- Joint control keymap:");
-  RCLCPP_INFO(get_logger(), "1/q -> J1, 2/w -> J2, 3/e -> J3, 4/r -> J4, 5/t -> J5, 6/y -> J6");
-  RCLCPP_INFO(get_logger(), "--- Base control keymap:");
-  RCLCPP_INFO(get_logger(), "arrows -> axis X/Y, .; -> axis Z");
-  RCLCPP_INFO(get_logger(), "With ? switch on/off rotation around axis");
-  RCLCPP_INFO(get_logger(), "---------------------------");
-  RCLCPP_INFO(get_logger(), "'s' to switch speed");
-  RCLCPP_INFO(get_logger(), "modes: STEP / CONT_SLOW");
-  RCLCPP_INFO(get_logger(), "---------------------------");
-  RCLCPP_INFO(get_logger(), "Ctrl+C to exit.");
+  if (control_mode_ == ControlMode::JOINT)
+  {
+    RCLCPP_INFO(get_logger(), COLOR_BOLD "\n\n================ TELEOP KEYBOARD =================" COLOR_RESET);
+    RCLCPP_INFO(get_logger(),
+      "Mode: " COLOR_CYAN "%s" COLOR_RESET
+      " | Speed: " COLOR_YELLOW "%s" COLOR_RESET,
+      to_string(control_mode_).c_str(),
+      to_string(speed_mode_).c_str()
+    );
+    RCLCPP_INFO(get_logger(), "---------------------------");
+    RCLCPP_INFO(get_logger(), "TAB          : switch control modes [JOINT / BASE / TOOL]");
+    RCLCPP_INFO(get_logger(), "SHIFT + 's'  : switch speed [STEP / CONT 5%% / CONT 10%% / CONT 25%%]");
+    RCLCPP_INFO(get_logger(), "---------------------------");
+    RCLCPP_INFO(get_logger(), "KEY LAYOUT:");
+    RCLCPP_INFO(get_logger(), "'1' / 'q' -> J1+/J1-");
+    RCLCPP_INFO(get_logger(), "'2' / 'w' -> J2+/J2-");
+    RCLCPP_INFO(get_logger(), "'3' / 'e' -> J3+/J3-");
+    RCLCPP_INFO(get_logger(), "'4' / 'r' -> J4+/J4-");
+    RCLCPP_INFO(get_logger(), "'5' / 't' -> J5+/J5-");
+    RCLCPP_INFO(get_logger(), "'6' / 'y' -> J6+/J6-");
+    RCLCPP_INFO(get_logger(), "---------------------------");
+    RCLCPP_INFO(get_logger(), COLOR_RED "Ctrl+C to exit." COLOR_RESET);
+  }
+  else
+  {
+    RCLCPP_INFO(get_logger(), COLOR_BOLD "\n\n================ TELEOP KEYBOARD =================" COLOR_RESET);
+    RCLCPP_INFO(get_logger(),
+      "Mode: " COLOR_CYAN "%s" COLOR_RESET
+      " | Speed: " COLOR_YELLOW "%s" COLOR_RESET,
+      to_string(control_mode_).c_str(),
+      to_string(speed_mode_).c_str()
+    );
+    RCLCPP_INFO(get_logger(), "---------------------------");
+    RCLCPP_INFO(get_logger(), "TAB          : switch control modes [JOINT / BASE / TOOL]");
+    RCLCPP_INFO(get_logger(), "SHIFT + 's'  : switch speed [STEP / CONT 5%% / CONT 10%% / CONT 25%%]");
+    RCLCPP_INFO(get_logger(), "'r'          : toggle rotation mode");
+    RCLCPP_INFO(get_logger(), "---------------------------");
+    RCLCPP_INFO(get_logger(), "KEY LAYOUT:");
+    RCLCPP_INFO(get_logger(), "Rotation: %s", rotation_ ? COLOR_GREEN "ON" COLOR_RESET : COLOR_RED "OFF" COLOR_RESET);
+    RCLCPP_INFO(get_logger(), "  'd' / 'a'  : X axis  + / -");
+    RCLCPP_INFO(get_logger(), "  'w' / 's'  : Y axis  + / -");
+    RCLCPP_INFO(get_logger(), "  'e' / 'q'  : Z axis  + / -");
+    RCLCPP_INFO(get_logger(), "---------------------------");
+    RCLCPP_INFO(get_logger(), COLOR_RED "Ctrl+C to exit." COLOR_RESET);
+  }
 }
 
 void KeyboardTeleopNode::poll_keyboard()
@@ -145,44 +173,39 @@ void KeyboardTeleopNode::poll_keyboard()
       continue;
     }
 
-    // change the control
     switch (c) {
       case KEYCODE_SPACE: stop_motion("space"); continue;
       case KEYCODE_TAB: switch_control_mode(); continue;
       case KEYCODE_CAPITAL_S: switch_speed_mode(); continue;
       default: handle_char_key(static_cast<char>(c)); continue;
-      }
+    }
   }
+}
+
+void KeyboardTeleopNode::stop_motion(const std::string &reason)
+{
+  (void)reason;
+  step_pending_one_shot_ = false;
+  active_cmd_ = ActiveCmd{};
 }
 
 void KeyboardTeleopNode::switch_control_mode()
 {
-  if (control_mode_ == ControlMode::JOINTS) control_mode_ = ControlMode::BASE;
-  else control_mode_ = ControlMode::JOINTS;
-
-  stop_motion("mode switch");
+  stop_motion("mode switched");
+  control_mode_ = next(control_mode_);
   print_instruction_and_status();
 }
 
 void KeyboardTeleopNode::switch_speed_mode()
 {
-  if (speed_mode_ == SpeedMode::STEP) speed_mode_ = SpeedMode::CONT_SLOW;
-  else speed_mode_ = SpeedMode::STEP;
-
-  stop_motion("speed switch");
-  print_instruction_and_status();
-}
-
-void KeyboardTeleopNode::toggle_rotation()
-{
-  rotation_ = !rotation_;
-  stop_motion("rotation toggle");
+  stop_motion("speed switched");
+  speed_mode_ = next(speed_mode_);
   print_instruction_and_status();
 }
 
 void KeyboardTeleopNode::handle_char_key(char c)
 {
-  if (control_mode_ == ControlMode::JOINTS){
+  if (control_mode_ == ControlMode::JOINT){
     auto it = joint_keymap_.find(c);
     if (it == joint_keymap_.end()){
       return;
@@ -197,23 +220,7 @@ void KeyboardTeleopNode::handle_char_key(char c)
         << " | speed=" << to_string(speed_mode_);
 
       active_cmd_testing = ss.str();
-      have_active_cmd_ = true;
     }
-
-    // Validate joint_names_ size (expect 6)
-    if (joint < 1 || joint > static_cast<int>(joint_names_.size())) {
-      RCLCPP_WARN_THROTTLE(get_logger(), *get_clock(), 2000,
-                            "joint_names has size %zu; key requested J%d",
-                            joint_names_.size(), joint);
-      return;
-    }
-
-    active_cmd_ = ActiveCmd{};
-    active_cmd_.type = ActiveCmdType::JOINT;
-    active_cmd_.joint_index = joint - 1;
-    active_cmd_.joint_sign = sign;
-
-    have_active_cmd_ = true;
 
     if (speed_mode_ == SpeedMode::STEP) {
       step_lock_time_ = this->now();
@@ -222,6 +229,11 @@ void KeyboardTeleopNode::handle_char_key(char c)
     } else {
       step_pending_one_shot_ = false;  // public continuously
     }
+
+    active_cmd_ = ActiveCmd{};
+    active_cmd_.joint_index = joint - 1;
+    active_cmd_.joint_sign = sign;
+    // have_active_cmd_ = true;
     return;
   }
 
@@ -230,53 +242,62 @@ void KeyboardTeleopNode::handle_char_key(char c)
   }
 }
 
-void KeyboardTeleopNode::stop_motion(const std::string &reason)
-{
-  (void)reason;
-  have_active_cmd_ = false;
-  step_pending_one_shot_ = false;
-  active_cmd_testing.clear();
-  active_cmd_ = ActiveCmd{};
-}
-
 double KeyboardTeleopNode::joint_vel_for_speed_mode() const
 {
-  return (speed_mode_ == SpeedMode::STEP) ? joint_vel_step_ : joint_vel_cont_slow_;
+  return (speed_mode_ == SpeedMode::STEP) ? joint_vel_step_ : joint_vel_cont_max_ * get_speed_val(speed_mode_);
+}
+
+double KeyboardTeleopNode::twist_lin_for_speed_mode() const
+{
+  return (speed_mode_ == SpeedMode::STEP) ? twist_lin_step_ : twist_lin_cont_max_ * get_speed_val(speed_mode_);
+}
+
+double KeyboardTeleopNode::twist_rot_for_speed_mode() const
+{
+  return (speed_mode_ == SpeedMode::STEP) ? twist_rot_step_ : twist_rot_cont_max_ * get_speed_val(speed_mode_);
 }
 
 void KeyboardTeleopNode::publish_loop()
 {
-  if (!have_active_cmd_) return;
+  // if (!have_active_cmd_) return;
 
   const auto now = this->now();
   const double dt = (now - last_input_time_).seconds();
 
-  if (speed_mode_ != SpeedMode::STEP && dt > stop_moving_timeout_s_) {
-    stop_motion("timeout");
-    return;
+  if (speed_mode_ != SpeedMode::STEP && dt > stop_moving_timeout_s_) stop_motion("timeout");
+
+  if (joint_names_.size() < 6) {
+    throw std::runtime_error("joint_names must contain at least 6 joints");
   }
 
-  if (active_cmd_.type == ActiveCmdType::JOINT) {
-    control_msgs::msg::JointJog msg;
-    msg.header.stamp = now;
-    msg.header.frame_id = base_frame_id_;  // often BASE frame is used for joint jog
+  auto joint_msg = control_msgs::msg::JointJog();
+  joint_msg.header.stamp = now;
+  joint_msg.header.frame_id = base_frame_id_;  // often BASE frame is used for joint jo
+  const int idx = active_cmd_.joint_index;
+  const double vel = joint_vel_for_speed_mode() * static_cast<double>(active_cmd_.joint_sign);
+  joint_msg.joint_names.push_back(joint_names_.at(idx));
+  joint_msg.velocities.push_back(vel);
 
-    const int idx = active_cmd_.joint_index;
-    const double vel = joint_vel_for_speed_mode() * static_cast<double>(active_cmd_.joint_sign);
+  auto twist_msg = geometry_msgs::msg::TwistStamped();
+  twist_msg.header.stamp = now;
+  twist_msg.header.frame_id = base_frame_id_;
+  twist_msg.twist.linear.x = active_cmd_.lin_x * twist_lin_for_speed_mode();
+  twist_msg.twist.linear.y = active_cmd_.lin_y * twist_lin_for_speed_mode();
+  twist_msg.twist.linear.z = active_cmd_.lin_z * twist_lin_for_speed_mode();
+  twist_msg.twist.angular.x = active_cmd_.ang_x * twist_rot_for_speed_mode();
+  twist_msg.twist.angular.y = active_cmd_.ang_y * twist_rot_for_speed_mode();
+  twist_msg.twist.angular.z = active_cmd_.ang_z * twist_rot_for_speed_mode();
 
-    msg.joint_names.push_back(joint_names_.at(idx));
-    msg.velocities.push_back(vel);
-
-    joint_pub_->publish(msg);
-  }
+  joint_pub_->publish(joint_msg);
+  twist_pub_->publish(twist_msg);
 
   // std_msgs::msg::String msg;
   // msg.data = active_cmd_;
   // pub_->publish(msg);
 
-  if (speed_mode_ == SpeedMode::STEP && step_pending_one_shot_) {
+  if (speed_mode_ == SpeedMode::STEP && step_pending_one_shot_)
+  {
     stop_motion("one step");
-    return;
   }
 }
 
