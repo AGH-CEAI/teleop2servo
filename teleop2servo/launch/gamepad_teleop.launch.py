@@ -13,8 +13,8 @@ def generate_launch_description():
         composable_node_descriptions=[
             ComposableNode(
                 package="teleop2servo",
-                plugin="teleop2servo::JoyToServoPubAegis",
-                name="joy_to_twist_publisher",
+                plugin="teleop2servo::GamepadTeleopNode",
+                name="gamepad_teleop_node",
             ),
             ComposableNode(
                 package="joy",

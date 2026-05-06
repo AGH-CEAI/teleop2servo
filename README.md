@@ -13,7 +13,7 @@ ROS 2 teleoperation node for controlling a robot using MoveIt Servo with various
 > `sudo apt install ros-$ROS_DISTRO-joy`
 
 ```bash
-ros2 launch teleop2servo joy_to_servo.launch.py
+ros2 launch teleop2servo gamepad_teleop.launch.py
 ```
 > ⚠️ **IMPORTANT:**
 > Make sure MoveIt Servo is running and the terminal window has focus.
