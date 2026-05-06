@@ -34,35 +34,34 @@ private:
   bool rotation_{false};
 
   ActiveCmd active_cmd_;
-  std::string active_cmd_testing;
   bool have_active_cmd_{false};
 
   rclcpp::Time last_input_time_;
-  double stop_moving_timeout_s_;
+  
+  char active_char_{0};
+  bool continnuous_repeat_seen_{false};
+  double initial_key_timeout_s_{0.4};
 
-  // ==== Step mode state ====
   bool step_pending_one_shot_{false};
   rclcpp::Time step_lock_time_;
-  char step_lock_char_{0};
 
   // ==== ROS interfaces ====
   rclcpp::TimerBase::SharedPtr key_timer_;
   rclcpp::TimerBase::SharedPtr pub_timer_;
-
+  
   rclcpp::Publisher<geometry_msgs::msg::TwistStamped>::SharedPtr twist_pub_;
   rclcpp::Publisher<control_msgs::msg::JointJog>::SharedPtr joint_pub_;
-
-  // ==== debugging publisher ====
-  rclcpp::Publisher<std_msgs::msg::String>::SharedPtr debug_pub_;
 
   // ==== keyboard inpyt ====
   teleop2servo::KeyboardReader keyboard_;
   std::unordered_map<char, JointMove> joint_keymap_;
-
+  
   // ==== parameters ====
   int publish_hz_;
   int queue_size_;
-
+  
+  double repeat_key_timeout_s_;
+  
   std::string twist_topic_;
   std::string joint_topic_;
   std::string base_frame_id_;
@@ -74,7 +73,7 @@ private:
   double joint_vel_cont_max_;
 
   double twist_lin_step_;
-  double twist_lin_cont_max_;
+  double twist_lin_cont_max_; 
 
   double twist_rot_step_;
   double twist_rot_cont_max_;
@@ -97,7 +96,9 @@ private:
   double twist_rot_for_speed_mode() const;
 
   void publish_loop();
-};
+  void publish_stop_once(const rclcpp::Time & now);
+  void publish_joint(const rclcpp::Time & now);
+  void publish_twist(const rclcpp::Time & now);
 
 } //namespace teleop2servo
 

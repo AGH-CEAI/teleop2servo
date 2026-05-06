@@ -27,6 +27,8 @@ enum class ActiveCmdType { NONE, JOINT, TWIST };
 
 struct ActiveCmd
 {
+  ActiveCmdType type{ActiveCmdType::NONE};
+
   int joint_index{0};  // 0..5
   int joint_sign{0};
 

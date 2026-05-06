@@ -93,8 +93,6 @@ void KeyboardTeleopNode::build_keymap()
 
 void KeyboardTeleopNode::setup_publishers()
 {
-  debug_pub_ = this->create_publisher<std_msgs::msg::String>("/keyboard_teleop/event", 10);
-
   twist_pub_ = this->create_publisher<geometry_msgs::msg::TwistStamped>(twist_topic_, queue_size_);
   joint_pub_ = this->create_publisher<control_msgs::msg::JointJog>(joint_topic_, queue_size_);
 }
@@ -168,7 +166,8 @@ void KeyboardTeleopNode::poll_keyboard()
 
     last_input_time_ = this->now();
 
-    if (step_lock_char_ == c && (last_input_time_ - step_lock_time_).seconds() < 0.4) {
+    // TODO: check how it works
+    if (active_char_ == c && (last_input_time_ - step_lock_time_).seconds() < 0.4) {
       step_lock_time_ = last_input_time_;
       continue;
     }
@@ -187,6 +186,7 @@ void KeyboardTeleopNode::stop_motion(const std::string &reason)
   (void)reason;
   step_pending_one_shot_ = false;
   active_cmd_ = ActiveCmd{};
+  have_active_cmd_ = true; // once with ActiveCmdType::NONE to stop montion.
 }
 
 void KeyboardTeleopNode::switch_control_mode()
@@ -213,32 +213,24 @@ void KeyboardTeleopNode::handle_char_key(char c)
     const int joint = it->second.joint;
     const int sign = it->second.sign;
 
-    {
-      // TESTING
-      std::ostringstream ss;
-      ss << "[JOINTS] J" << joint << " sign=" << (sign > 0 ? "+" : "-")
-        << " | speed=" << to_string(speed_mode_);
-
-      active_cmd_testing = ss.str();
-    }
-
-    if (speed_mode_ == SpeedMode::STEP) {
-      step_lock_time_ = this->now();
-      step_lock_char_ = c;
-      step_pending_one_shot_ = true;   // public ones
-    } else {
-      step_pending_one_shot_ = false;  // public continuously
-    }
-
     active_cmd_ = ActiveCmd{};
+    active_cmd_.type = ActiveCmdType::JOINT;
     active_cmd_.joint_index = joint - 1;
     active_cmd_.joint_sign = sign;
-    // have_active_cmd_ = true;
+    have_active_cmd_ = true;
+  }
+  else  // all cartesian movements
+  {
+    // TODO(issue#3) implement arrow controlling
     return;
   }
 
-  if (control_mode_ == ControlMode::BASE) {
-    // TODO(issue#3) implement arrow controlling
+  if (speed_mode_ == SpeedMode::STEP) {
+    step_lock_time_ = this->now();
+    active_char_ = c;
+    step_pending_one_shot_ = true;   // public ones
+  } else {
+    step_pending_one_shot_ = false;  // public continuously
   }
 }
 
@@ -257,43 +249,84 @@ double KeyboardTeleopNode::twist_rot_for_speed_mode() const
   return (speed_mode_ == SpeedMode::STEP) ? twist_rot_step_ : twist_rot_cont_max_ * get_speed_val(speed_mode_);
 }
 
-void KeyboardTeleopNode::publish_loop()
+void KeyboardTeleopNode::publish_stop_once(const rclcpp::Time & now)
 {
-  // if (!have_active_cmd_) return;
-
-  const auto now = this->now();
-  const double dt = (now - last_input_time_).seconds();
-
-  if (speed_mode_ != SpeedMode::STEP && dt > stop_moving_timeout_s_) stop_motion("timeout");
-
-  if (joint_names_.size() < 6) {
-    throw std::runtime_error("joint_names must contain at least 6 joints");
-  }
-
   auto joint_msg = control_msgs::msg::JointJog();
   joint_msg.header.stamp = now;
-  joint_msg.header.frame_id = base_frame_id_;  // often BASE frame is used for joint jo
-  const int idx = active_cmd_.joint_index;
-  const double vel = joint_vel_for_speed_mode() * static_cast<double>(active_cmd_.joint_sign);
-  joint_msg.joint_names.push_back(joint_names_.at(idx));
-  joint_msg.velocities.push_back(vel);
+  joint_msg.header.frame_id = base_frame_id_;
+  for (const auto & name : joint_names_){
+    joint_msg.joint_names.push_back(name);
+    joint_msg.velocities.push_back(0.0);
+  }
+
+  joint_pub_->publish(joint_msg);
 
   auto twist_msg = geometry_msgs::msg::TwistStamped();
   twist_msg.header.stamp = now;
   twist_msg.header.frame_id = base_frame_id_;
+
+  twist_pub_->publish(twist_msg);
+}
+
+void KeyboardTeleopNode::publish_joint(const rclcpp::Time & now)
+{
+  if (joint_names_.size() < 6) {
+    throw std::runtime_error("joint_names must contain at least 6 joints");
+  }
+
+  const int idx = active_cmd_.joint_index;
+  const double vel = joint_vel_for_speed_mode() * static_cast<double>(active_cmd_.joint_sign);
+  
+  auto joint_msg = control_msgs::msg::JointJog();
+  joint_msg.header.stamp = now;
+  joint_msg.header.frame_id = base_frame_id_;  // often BASE frame is used for joint jog
+  joint_msg.joint_names.push_back(joint_names_.at(idx));
+  joint_msg.velocities.push_back(vel);
+
+  joint_pub_->publish(joint_msg);
+}
+
+void KeyboardTeleopNode::publish_twist(const rclcpp::Time & now)
+{
+  auto twist_msg = geometry_msgs::msg::TwistStamped();
+  twist_msg.header.stamp = now;
+  twist_msg.header.frame_id = base_frame_id_;
+
   twist_msg.twist.linear.x = active_cmd_.lin_x * twist_lin_for_speed_mode();
   twist_msg.twist.linear.y = active_cmd_.lin_y * twist_lin_for_speed_mode();
   twist_msg.twist.linear.z = active_cmd_.lin_z * twist_lin_for_speed_mode();
+
   twist_msg.twist.angular.x = active_cmd_.ang_x * twist_rot_for_speed_mode();
   twist_msg.twist.angular.y = active_cmd_.ang_y * twist_rot_for_speed_mode();
   twist_msg.twist.angular.z = active_cmd_.ang_z * twist_rot_for_speed_mode();
 
-  joint_pub_->publish(joint_msg);
   twist_pub_->publish(twist_msg);
+}
 
-  // std_msgs::msg::String msg;
-  // msg.data = active_cmd_;
-  // pub_->publish(msg);
+void KeyboardTeleopNode::publish_loop()
+{
+  if (!have_active_cmd_) return;
+
+  const auto now = this->now();
+  const double dt = (now - last_input_time_).seconds();
+  
+  if (speed_mode_ != SpeedMode::STEP && dt > stop_moving_timeout_s_) stop_motion("timeout");
+
+  switch (active_cmd_.type)
+  {
+    case ActiveCmdType::NONE:
+      publish_stop_once(now);
+      have_active_cmd_ = false;
+      break;
+
+    case ActiveCmdType::JOINT:
+      publish_joint(now);
+      break;
+
+    case ActiveCmdType::TWIST:
+      publish_twist(now);
+      break;
+  }
 
   if (speed_mode_ == SpeedMode::STEP && step_pending_one_shot_)
   {
