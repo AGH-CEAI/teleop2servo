@@ -3,14 +3,14 @@ ROS 2 teleoperation node for controlling a robot using MoveIt Servo with various
 
 ## What it does
 * Sends JointJog and TwistStamped commands from keyboard input
-* Supports joint and ~~Cartesian (base) control~~ (underconstruction)
+* Supports joint and cartesian (base and tool) control
 * Clean shutdown with Ctrl+C
 
 ## Run
 ### For keyboard input:
 
 ```bash
-ros2 run teleop2servo keyboard_teleop_node 
+ros2 run teleop2servo keyboard_teleop_node
 ```
 With special params:
 ```bash
