@@ -18,6 +18,9 @@ ros2 run teleop2servo teleop_keyboard_node --ros-args --params-file "path to /te
 ```
 
 ### For gamepad input:
+```bash
+TODO
+```
 
 > ⚠️ **IMPORTANT:**
 > Make sure MoveIt Servo is running and the terminal window has focus.
