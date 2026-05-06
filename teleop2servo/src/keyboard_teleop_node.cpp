@@ -65,14 +65,14 @@ void KeyboardTeleopNode::load_parameters()
     "wrist_1_joint", "wrist_2_joint", "wrist_3_joint"
   });
 
-  this->get_parameter_or("joint_vel_step", joint_vel_step_, 0.05);
-  this->get_parameter_or("joint_vel_cont_max", joint_vel_cont_max_, 0.3);
+  this->get_parameter_or("joint_vel_step", joint_vel_step_, 0.3);
+  this->get_parameter_or("joint_vel_cont_max", joint_vel_cont_max_, 1.0);
 
-  this->get_parameter_or("twist_lin_step", twist_lin_step_, 0.01);
-  this->get_parameter_or("twist_lin_cont_max", twist_lin_cont_max_, 0.1);
+  this->get_parameter_or("twist_lin_step", twist_lin_step_, 0.3);
+  this->get_parameter_or("twist_lin_cont_max", twist_lin_cont_max_, 1.0);
 
-  this->get_parameter_or("twist_rot_step", twist_rot_step_, 0.05);
-  this->get_parameter_or("twist_rot_cont_max", twist_rot_cont_max_, 0.25);
+  this->get_parameter_or("twist_rot_step", twist_rot_step_, 0.3);
+  this->get_parameter_or("twist_rot_cont_max", twist_rot_cont_max_, 1.0);
 }
 
 void KeyboardTeleopNode::build_keymap()
