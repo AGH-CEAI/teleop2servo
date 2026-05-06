@@ -173,6 +173,13 @@ void KeyboardTeleopNode::poll_keyboard()
 
     last_input_time_ = this->now();
 
+    switch (c) {
+      case KEYCODE_SPACE: stop_motion("space"); continue;
+      case KEYCODE_TAB: switch_control_mode(); continue;
+      case KEYCODE_CAPITAL_S: switch_speed_mode(); continue;
+      default: break;
+    }
+
     // In STEP mode repeated same-key events within cooldown are ignored.
     if (speed_mode_ == SpeedMode::STEP &&
       active_char_ == c &&
@@ -182,12 +189,7 @@ void KeyboardTeleopNode::poll_keyboard()
       continue;
     }
 
-    switch (c) {
-      case KEYCODE_SPACE: stop_motion("space"); continue;
-      case KEYCODE_TAB: switch_control_mode(); continue;
-      case KEYCODE_CAPITAL_S: switch_speed_mode(); continue;
-      default: handle_char_key(static_cast<char>(c)); continue;
-    }
+    handle_char_key(static_cast<char>(c));
   }
 }
 
@@ -309,7 +311,8 @@ void KeyboardTeleopNode::publish_stop_once(const rclcpp::Time & now)
 
   auto twist_msg = geometry_msgs::msg::TwistStamped();
   twist_msg.header.stamp = now;
-  twist_msg.header.frame_id = base_frame_id_;
+  twist_msg.header.frame_id =
+    active_cmd_.frame_id.empty() ? base_frame_id_ : active_cmd_.frame_id;
 
   twist_pub_->publish(twist_msg);
 }
