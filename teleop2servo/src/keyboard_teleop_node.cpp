@@ -51,7 +51,7 @@ KeyboardTeleopNode::~KeyboardTeleopNode()
 void KeyboardTeleopNode::load_parameters()
 {
   this->get_parameter_or("publish_hz", publish_hz_, 250);
-  this->get_parameter_or("stop_moving_timeout_s", stop_moving_timeout_s_, 0.2);
+  this->get_parameter_or("step_publish_ticks", step_publish_ticks_, 2);
 
   this->get_parameter_or("twist_topic", twist_topic_, std::string("/servo_node/delta_twist_cmds"));
   this->get_parameter_or("joint_topic", joint_topic_, std::string("/servo_node/delta_joint_cmds"));
@@ -166,8 +166,11 @@ void KeyboardTeleopNode::poll_keyboard()
 
     last_input_time_ = this->now();
 
-    // TODO: check how it works
-    if (active_char_ == c && (last_input_time_ - step_lock_time_).seconds() < 0.4) {
+    // In STEP mode repeated same-key events within cooldown are ignored.
+    if (speed_mode_ == SpeedMode::STEP &&
+      active_char_ == c &&
+      (last_input_time_ - step_lock_time_).seconds() < step_key_cooldown_s_)
+    {
       step_lock_time_ = last_input_time_;
       continue;
     }
@@ -184,9 +187,11 @@ void KeyboardTeleopNode::poll_keyboard()
 void KeyboardTeleopNode::stop_motion(const std::string &reason)
 {
   (void)reason;
-  step_pending_one_shot_ = false;
+  step_ticks_remaining_ = 0;
+  continuous_repeat_seen_ = false;
+  active_char_ = 0;
   active_cmd_ = ActiveCmd{};
-  have_active_cmd_ = true; // once with ActiveCmdType::NONE to stop montion.
+  have_active_cmd_ = true; // once with ActiveCmdType::NONE to stop motion.
 }
 
 void KeyboardTeleopNode::switch_control_mode()
@@ -226,11 +231,18 @@ void KeyboardTeleopNode::handle_char_key(char c)
   }
 
   if (speed_mode_ == SpeedMode::STEP) {
-    step_lock_time_ = this->now();
     active_char_ = c;
-    step_pending_one_shot_ = true;   // public ones
+    step_lock_time_ = this->now();
+    step_ticks_remaining_ = std::max(1, step_publish_ticks_);
   } else {
-    step_pending_one_shot_ = false;  // public continuously
+    step_ticks_remaining_ = 0;
+
+    if (active_char_ == c){
+      continuous_repeat_seen_ = true;
+    } else {
+      active_char_ = c;
+      continuous_repeat_seen_ = false;
+    }
   }
 }
 
@@ -276,7 +288,7 @@ void KeyboardTeleopNode::publish_joint(const rclcpp::Time & now)
 
   const int idx = active_cmd_.joint_index;
   const double vel = joint_vel_for_speed_mode() * static_cast<double>(active_cmd_.joint_sign);
-  
+
   auto joint_msg = control_msgs::msg::JointJog();
   joint_msg.header.stamp = now;
   joint_msg.header.frame_id = base_frame_id_;  // often BASE frame is used for joint jog
@@ -309,15 +321,17 @@ void KeyboardTeleopNode::publish_loop()
 
   const auto now = this->now();
   const double dt = (now - last_input_time_).seconds();
-  
-  if (speed_mode_ != SpeedMode::STEP && dt > stop_moving_timeout_s_) stop_motion("timeout");
+
+  const double timeout_s = continuous_repeat_seen_ ? repeat_key_timeout_s_ : initial_key_timeout_s_;
+
+  if (speed_mode_ != SpeedMode::STEP && dt > timeout_s) stop_motion("timeout");
 
   switch (active_cmd_.type)
   {
     case ActiveCmdType::NONE:
       publish_stop_once(now);
       have_active_cmd_ = false;
-      break;
+      return;
 
     case ActiveCmdType::JOINT:
       publish_joint(now);
@@ -328,9 +342,10 @@ void KeyboardTeleopNode::publish_loop()
       break;
   }
 
-  if (speed_mode_ == SpeedMode::STEP && step_pending_one_shot_)
+  if (speed_mode_ == SpeedMode::STEP && step_ticks_remaining_ > 0)
   {
-    stop_motion("one step");
+    --step_ticks_remaining_;
+    if (step_ticks_remaining_ <= 0) stop_motion("one step");
   }
 }
 
