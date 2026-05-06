@@ -20,6 +20,12 @@ struct JointMove
   int sign;    // +1 or -1
 };
 
+struct TwistMove
+{
+  char axis;   // 'x', 'y', 'z'
+  int sign;    // +1 or -1
+};
+
 enum class ControlMode {JOINT, BASE, TOOL};
 enum class SpeedMode {STEP, CONT_P5, CONT_P10, CONT_P25};
 
@@ -34,6 +40,8 @@ struct ActiveCmd
 
   double lin_x{0.0}, lin_y{0.0}, lin_z{0.0};
   double ang_x{0.0}, ang_y{0.0}, ang_z{0.0};
+
+  std::string frame_id{};
 };
 
 inline double get_speed_val(SpeedMode m)
@@ -74,7 +82,7 @@ inline std::string to_string(ControlMode m)
   switch (m) {
     case ControlMode::JOINT: return "JOINT";
     case ControlMode::BASE: return "BASE";
-    case ControlMode::TOOL: return "TOOL"
+    case ControlMode::TOOL: return "TOOL";
     default: return "UNKNOWN";
   }
 }

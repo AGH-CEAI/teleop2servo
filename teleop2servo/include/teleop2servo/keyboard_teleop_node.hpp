@@ -57,6 +57,7 @@ private:
   // ==== keyboard inpyt ====
   teleop2servo::KeyboardReader keyboard_;
   std::unordered_map<char, JointMove> joint_keymap_;
+  std::unordered_map<char, TwistMove> cartesian_keymap_;
 
   // ==== parameters ====
   int publish_hz_;

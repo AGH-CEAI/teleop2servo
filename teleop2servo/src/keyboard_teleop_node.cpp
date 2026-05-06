@@ -89,6 +89,13 @@ void KeyboardTeleopNode::build_keymap()
   joint_keymap_[static_cast<char>(KEYCODE_T)] = {5, -1};
   joint_keymap_[static_cast<char>(KEYCODE_6)] = {6, +1};
   joint_keymap_[static_cast<char>(KEYCODE_Y)] = {6, -1};
+
+  cartesian_keymap_[static_cast<char>(KEYCODE_D)] = {'x', +1};
+  cartesian_keymap_[static_cast<char>(KEYCODE_A)] = {'x', -1};
+  cartesian_keymap_[static_cast<char>(KEYCODE_W)] = {'y', +1};
+  cartesian_keymap_[static_cast<char>(KEYCODE_S)] = {'y', -1};
+  cartesian_keymap_[static_cast<char>(KEYCODE_E)] = {'z', +1};
+  cartesian_keymap_[static_cast<char>(KEYCODE_Q)] = {'z', -1};
 }
 
 void KeyboardTeleopNode::setup_publishers()
@@ -226,8 +233,35 @@ void KeyboardTeleopNode::handle_char_key(char c)
   }
   else  // all cartesian movements
   {
-    // TODO(issue#3) implement arrow controlling
-    return;
+    if (c == static_cast<char>(KEYCODE_R)) {
+      rotation_ = !rotation_;
+      stop_motion("rotation toggled");
+      print_instruction_and_status();
+      return;
+    }
+
+    auto it = cartesian_keymap_.find(c);
+    if (it == cartesian_keymap_.end()) return;
+
+    const auto move = it->second;
+
+    active_cmd_ = ActiveCmd{};
+    active_cmd_.type = ActiveCmdType::TWIST;
+    active_cmd_.frame_id =
+      (control_mode_ == ControlMode::BASE) ? base_frame_id_ : ee_frame_id_;
+
+    const double sign = static_cast<double>(move.sign);
+    if (!rotation_) {
+      if (move.axis == 'x') active_cmd_.lin_x = sign;
+      if (move.axis == 'y') active_cmd_.lin_y = sign;
+      if (move.axis == 'z') active_cmd_.lin_z = sign;
+    } else {
+      if (move.axis == 'x') active_cmd_.ang_x = sign;
+      if (move.axis == 'y') active_cmd_.ang_y = sign;
+      if (move.axis == 'z') active_cmd_.ang_z = sign;
+    }
+
+    have_active_cmd_ = true;
   }
 
   if (speed_mode_ == SpeedMode::STEP) {
@@ -302,7 +336,8 @@ void KeyboardTeleopNode::publish_twist(const rclcpp::Time & now)
 {
   auto twist_msg = geometry_msgs::msg::TwistStamped();
   twist_msg.header.stamp = now;
-  twist_msg.header.frame_id = base_frame_id_;
+  twist_msg.header.frame_id =
+    active_cmd_.frame_id.empty() ? base_frame_id_ : active_cmd_.frame_id;
 
   twist_msg.twist.linear.x = active_cmd_.lin_x * twist_lin_for_speed_mode();
   twist_msg.twist.linear.y = active_cmd_.lin_y * twist_lin_for_speed_mode();
