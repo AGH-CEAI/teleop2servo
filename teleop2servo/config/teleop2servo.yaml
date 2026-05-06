@@ -1,4 +1,4 @@
-keyboard_teleop:
+teleop2servo:
   ros__parameters:
     publish_hz: 250
 
