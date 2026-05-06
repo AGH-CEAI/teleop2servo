@@ -45,7 +45,7 @@ private:
 
   int step_ticks_remaining_{0};
   rclcpp::Time step_lock_time_;
-  double step_key_cooldown_s_{1};
+  double step_key_cooldown_s_{0.51};
 
   // ==== ROS interfaces ====
   rclcpp::TimerBase::SharedPtr key_timer_;

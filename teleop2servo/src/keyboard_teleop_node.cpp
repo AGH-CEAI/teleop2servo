@@ -198,7 +198,6 @@ void KeyboardTeleopNode::stop_motion(const std::string &reason)
   (void)reason;
   step_ticks_remaining_ = 0;
   continuous_repeat_seen_ = false;
-  active_char_ = 0;
   active_cmd_ = ActiveCmd{};
   have_active_cmd_ = true; // once with ActiveCmdType::NONE to stop motion.
 }
