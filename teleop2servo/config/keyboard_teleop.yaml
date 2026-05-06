@@ -2,7 +2,7 @@ keyboard_teleop:
   ros__parameters:
     publish_hz: 250
 
-    stop_moving_timeout_s: 0.2
+    step_publish_ticks: 25
 
     # serwo topics
     twist_topic: "/servo_node/delta_twist_cmds"
@@ -12,16 +12,6 @@ keyboard_teleop:
     base_frame_id: "base_link"
     ee_frame_id: "tool0"
 
-    # speeds
-    joint_vel_step: 0.15
-    joint_vel_cont_max: 1.0
-
-    twist_lin_step: 0.02
-    twist_lin_cont_max: 0.08
-
-    twist_rot_step: 0.08
-    twist_rot_cont_max: 0.20
-
     joint_names:
       - shoulder_pan_joint
       - shoulder_lift_joint
@@ -29,3 +19,13 @@ keyboard_teleop:
       - wrist_1_joint
       - wrist_2_joint
       - wrist_3_joint
+
+    # speeds
+    joint_vel_step: 0.05
+    joint_vel_cont_max: 0.3
+
+    twist_lin_step: 0.01
+    twist_lin_cont_max: 0.1
+
+    twist_rot_step: 0.05
+    twist_rot_cont_max: 0.25

@@ -40,12 +40,12 @@ private:
 
   char active_char_{0};
   bool continuous_repeat_seen_{false};
-  double initial_key_timeout_s_{0.4};
+  double initial_key_timeout_s_{0.51};
   double repeat_key_timeout_s_{0.08};
 
   int step_ticks_remaining_{0};
   rclcpp::Time step_lock_time_;
-  double step_key_cooldown_s_{0.5};
+  double step_key_cooldown_s_{0.51};
 
   // ==== ROS interfaces ====
   rclcpp::TimerBase::SharedPtr key_timer_;
@@ -101,6 +101,7 @@ private:
   void publish_stop_once(const rclcpp::Time & now);
   void publish_joint(const rclcpp::Time & now);
   void publish_twist(const rclcpp::Time & now);
+};
 
 } //namespace teleop2servo
 

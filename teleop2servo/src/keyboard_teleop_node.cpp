@@ -51,7 +51,7 @@ KeyboardTeleopNode::~KeyboardTeleopNode()
 void KeyboardTeleopNode::load_parameters()
 {
   this->get_parameter_or("publish_hz", publish_hz_, 250);
-  this->get_parameter_or("step_publish_ticks", step_publish_ticks_, 2);
+  this->get_parameter_or("step_publish_ticks", step_publish_ticks_, 25);
 
   this->get_parameter_or("twist_topic", twist_topic_, std::string("/servo_node/delta_twist_cmds"));
   this->get_parameter_or("joint_topic", joint_topic_, std::string("/servo_node/delta_joint_cmds"));
@@ -65,14 +65,14 @@ void KeyboardTeleopNode::load_parameters()
     "wrist_1_joint", "wrist_2_joint", "wrist_3_joint"
   });
 
-  this->get_parameter_or("joint_vel_step", joint_vel_step_, 1.0);
-  this->get_parameter_or("joint_vel_cont_max", joint_vel_cont_max_, 1.0);
+  this->get_parameter_or("joint_vel_step", joint_vel_step_, 0.05);
+  this->get_parameter_or("joint_vel_cont_max", joint_vel_cont_max_, 0.3);
 
-  this->get_parameter_or("twist_lin_step", twist_lin_step_, 0.05);
-  this->get_parameter_or("twist_lin_cont_max", twist_lin_cont_max_, 1.0);
+  this->get_parameter_or("twist_lin_step", twist_lin_step_, 0.01);
+  this->get_parameter_or("twist_lin_cont_max", twist_lin_cont_max_, 0.1);
 
-  this->get_parameter_or("twist_rot_step", twist_rot_step_, 0.20);
-  this->get_parameter_or("twist_rot_cont_max", twist_rot_cont_max_, 0.35);
+  this->get_parameter_or("twist_rot_step", twist_rot_step_, 0.05);
+  this->get_parameter_or("twist_rot_cont_max", twist_rot_cont_max_, 0.25);
 }
 
 void KeyboardTeleopNode::build_keymap()
