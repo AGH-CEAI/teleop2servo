@@ -7,10 +7,20 @@ ROS 2 teleoperation node for controlling a robot using MoveIt Servo with various
 * Clean shutdown with Ctrl+C
 
 ## Run
+### For keyboard input:
+
 ```bash
-ros2 run teleop2servo teleop_keyboard_node --ros-args --params-file "path to /teleop2servo/config/teleop_keyboard.yaml"
+ros2 run teleop2servo teleop_keyboard_node
 ```
-Make sure MoveIt Servo is running and the terminal window has focus.
+With special params:
+```bash
+ros2 run teleop2servo teleop_keyboard_node --ros-args --params-file "path to /teleop2servo/config/teleop2servo.yaml"
+```
+
+### For gamepad input:
+
+> ⚠️ **IMPORTANT:**
+> Make sure MoveIt Servo is running and the terminal window has focus.
 
 ## License
 Apache 2.0
