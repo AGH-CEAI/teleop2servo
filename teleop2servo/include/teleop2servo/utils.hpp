@@ -2,6 +2,7 @@
 #define TELEOP2SERVO__UTILS_HPP_
 
 #include <string>
+#include <vector>
 
 #define COLOR_RESET   "\033[0m"
 #define COLOR_RED     "\033[31m"
@@ -13,35 +14,20 @@
 
 namespace teleop2servo
 {
-
-struct JointMove
-{
-  int joint;   // 1..6
-  int sign;    // +1 or -1
-};
-
-struct TwistMove
-{
-  char axis;   // 'x', 'y', 'z'
-  int sign;    // +1 or -1
-};
-
 enum class ControlMode {JOINT, BASE, TOOL};
 enum class SpeedMode {STEP, CONT_P5, CONT_P10, CONT_P25};
 
 enum class ActiveCmdType { NONE, JOINT, TWIST };
 
-struct ActiveCmd
+struct ActiveCmdGamepad
 {
   ActiveCmdType type{ActiveCmdType::NONE};
 
-  int joint_index{0};  // 0..5
-  int joint_sign{0};
+  std::vector<double> joint_velocities;
 
-  double lin_x{0.0}, lin_y{0.0}, lin_z{0.0};
-  double ang_x{0.0}, ang_y{0.0}, ang_z{0.0};
+  geometry_msgs::msg::Twist twist;
 
-  std::string frame_id{};
+  std::string frame_id{"base_link"};
 };
 
 inline double get_speed_val(SpeedMode m)

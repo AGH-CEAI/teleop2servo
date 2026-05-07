@@ -5,7 +5,7 @@ teleop2servo:
     step_publish_ticks: 25
 
     # joy topic
-
+    joy_topic: "/joy"
 
     # serwo topics
     twist_topic: "/servo_node/delta_twist_cmds"
@@ -24,11 +24,11 @@ teleop2servo:
       - wrist_3_joint
 
     # speeds
-    joint_vel_step: 0.05
-    joint_vel_cont_max: 0.3
+    joint_vel_step: 0.05      # [rad/s]
+    joint_vel_cont_max: 0.3   # [rad/s]
 
-    twist_lin_step: 0.01
-    twist_lin_cont_max: 0.1
+    twist_lin_step: 0.01      # [m/s]
+    twist_lin_cont_max: 0.1   # [m/s]
 
-    twist_rot_step: 0.05
-    twist_rot_cont_max: 0.25
+    twist_rot_step: 0.05      # [rad/s]
+    twist_rot_cont_max: 0.25  # [rad/s]
