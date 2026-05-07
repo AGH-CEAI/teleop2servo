@@ -86,6 +86,9 @@ private:
   void setup_timers();
 
   void print_instruction_and_status();
+  void print_joint_instructions();
+  void print_cartesian_instructions();
+
   void poll_keyboard();
   void switch_control_mode();
   void switch_speed_mode();

@@ -119,51 +119,54 @@ void KeyboardTeleopNode::setup_timers()
 
 void KeyboardTeleopNode::print_instruction_and_status()
 {
-  if (control_mode_ == ControlMode::JOINT)
-  {
-    RCLCPP_INFO(get_logger(), COLOR_BOLD "\n\n================ TELEOP KEYBOARD =================" COLOR_RESET);
-    RCLCPP_INFO(get_logger(),
-      "Mode: " COLOR_CYAN "%s" COLOR_RESET
-      " | Speed: " COLOR_YELLOW "%s" COLOR_RESET,
-      to_string(control_mode_).c_str(),
-      to_string(speed_mode_).c_str()
-    );
-    RCLCPP_INFO(get_logger(), "---------------------------");
-    RCLCPP_INFO(get_logger(), "TAB          : switch control modes [JOINT / BASE / TOOL]");
-    RCLCPP_INFO(get_logger(), "SHIFT + 's'  : switch speed [STEP / CONT 5%% / CONT 10%% / CONT 25%%]");
-    RCLCPP_INFO(get_logger(), "---------------------------");
-    RCLCPP_INFO(get_logger(), "KEY LAYOUT:");
-    RCLCPP_INFO(get_logger(), "'1' / 'q' -> J1+/J1-");
-    RCLCPP_INFO(get_logger(), "'2' / 'w' -> J2+/J2-");
-    RCLCPP_INFO(get_logger(), "'3' / 'e' -> J3+/J3-");
-    RCLCPP_INFO(get_logger(), "'4' / 'r' -> J4+/J4-");
-    RCLCPP_INFO(get_logger(), "'5' / 't' -> J5+/J5-");
-    RCLCPP_INFO(get_logger(), "'6' / 'y' -> J6+/J6-");
-    RCLCPP_INFO(get_logger(), "---------------------------");
-    RCLCPP_INFO(get_logger(), COLOR_RED "Ctrl+C to exit." COLOR_RESET);
-  }
-  else
-  {
-    RCLCPP_INFO(get_logger(), COLOR_BOLD "\n\n================ TELEOP KEYBOARD =================" COLOR_RESET);
-    RCLCPP_INFO(get_logger(),
-      "Mode: " COLOR_CYAN "%s" COLOR_RESET
-      " | Speed: " COLOR_YELLOW "%s" COLOR_RESET,
-      to_string(control_mode_).c_str(),
-      to_string(speed_mode_).c_str()
-    );
-    RCLCPP_INFO(get_logger(), "---------------------------");
-    RCLCPP_INFO(get_logger(), "TAB          : switch control modes [JOINT / BASE / TOOL]");
-    RCLCPP_INFO(get_logger(), "SHIFT + 's'  : switch speed [STEP / CONT 5%% / CONT 10%% / CONT 25%%]");
-    RCLCPP_INFO(get_logger(), "'r'          : toggle rotation mode");
-    RCLCPP_INFO(get_logger(), "---------------------------");
-    RCLCPP_INFO(get_logger(), "KEY LAYOUT:");
-    RCLCPP_INFO(get_logger(), "Rotation: %s", rotation_ ? COLOR_GREEN "ON" COLOR_RESET : COLOR_RED "OFF" COLOR_RESET);
-    RCLCPP_INFO(get_logger(), "  'd' / 'a'  : X axis  + / -");
-    RCLCPP_INFO(get_logger(), "  'w' / 's'  : Y axis  + / -");
-    RCLCPP_INFO(get_logger(), "  'e' / 'q'  : Z axis  + / -");
-    RCLCPP_INFO(get_logger(), "---------------------------");
-    RCLCPP_INFO(get_logger(), COLOR_RED "Ctrl+C to exit." COLOR_RESET);
-  }
+  (control_mode_ == ControlMode::JOINT) ? print_joint_instructions() : print_cartesian_instructions();
+}
+
+void KeyboardTeleopNode::print_joint_instructions()
+{
+  RCLCPP_INFO(get_logger(), COLOR_BOLD "\n\n================ TELEOP KEYBOARD =================" COLOR_RESET);
+  RCLCPP_INFO(get_logger(),
+  "Mode: " COLOR_CYAN "%s" COLOR_RESET
+  " | Speed: " COLOR_YELLOW "%s" COLOR_RESET,
+  to_string(control_mode_).c_str(),
+  to_string(speed_mode_).c_str()
+);
+RCLCPP_INFO(get_logger(), "---------------------------");
+RCLCPP_INFO(get_logger(), "TAB          : switch control modes [JOINT / BASE / TOOL]");
+RCLCPP_INFO(get_logger(), "SHIFT + 's'  : switch speed [STEP / CONT 5%% / CONT 10%% / CONT 25%%]");
+RCLCPP_INFO(get_logger(), "---------------------------");
+RCLCPP_INFO(get_logger(), "KEY LAYOUT:");
+RCLCPP_INFO(get_logger(), "'1' / 'q' -> J1+/J1-");
+  RCLCPP_INFO(get_logger(), "'2' / 'w' -> J2+/J2-");
+  RCLCPP_INFO(get_logger(), "'3' / 'e' -> J3+/J3-");
+  RCLCPP_INFO(get_logger(), "'4' / 'r' -> J4+/J4-");
+  RCLCPP_INFO(get_logger(), "'5' / 't' -> J5+/J5-");
+  RCLCPP_INFO(get_logger(), "'6' / 'y' -> J6+/J6-");
+  RCLCPP_INFO(get_logger(), "---------------------------");
+  RCLCPP_INFO(get_logger(), COLOR_RED "Ctrl+C to exit." COLOR_RESET);
+}
+
+void KeyboardTeleopNode::print_cartesian_instructions()
+{
+  RCLCPP_INFO(get_logger(), COLOR_BOLD "\n\n================ TELEOP KEYBOARD =================" COLOR_RESET);
+  RCLCPP_INFO(get_logger(),
+  "Mode: " COLOR_CYAN "%s" COLOR_RESET
+  " | Speed: " COLOR_YELLOW "%s" COLOR_RESET,
+  to_string(control_mode_).c_str(),
+  to_string(speed_mode_).c_str()
+  );
+  RCLCPP_INFO(get_logger(), "---------------------------");
+  RCLCPP_INFO(get_logger(), "TAB          : switch control modes [JOINT / BASE / TOOL]");
+  RCLCPP_INFO(get_logger(), "SHIFT + 's'  : switch speed [STEP / CONT 5%% / CONT 10%% / CONT 25%%]");
+  RCLCPP_INFO(get_logger(), "'r'          : toggle rotation mode");
+  RCLCPP_INFO(get_logger(), "---------------------------");
+  RCLCPP_INFO(get_logger(), "KEY LAYOUT:");
+  RCLCPP_INFO(get_logger(), "Rotation: %s", rotation_ ? COLOR_GREEN "ON" COLOR_RESET : COLOR_RED "OFF" COLOR_RESET);
+  RCLCPP_INFO(get_logger(), "  'd' / 'a'  : X axis  + / -");
+  RCLCPP_INFO(get_logger(), "  'w' / 's'  : Y axis  + / -");
+  RCLCPP_INFO(get_logger(), "  'e' / 'q'  : Z axis  + / -");
+  RCLCPP_INFO(get_logger(), "---------------------------");
+  RCLCPP_INFO(get_logger(), COLOR_RED "Ctrl+C to exit." COLOR_RESET);
 }
 
 void KeyboardTeleopNode::poll_keyboard()
