@@ -28,12 +28,8 @@ target_include_directories(
   keyboard_teleop_node PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
                               $<INSTALL_INTERFACE:include>)
 
-# TESTING
-add_executable(tester_sub test/tester_sub.cpp)
-ament_target_dependencies(tester_sub rclcpp std_msgs)
-
 install(
-  TARGETS keyboard_teleop_node tester_sub
+  TARGETS keyboard_teleop_node
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION lib/${PROJECT_NAME})
