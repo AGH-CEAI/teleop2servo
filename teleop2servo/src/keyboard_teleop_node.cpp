@@ -203,6 +203,8 @@ void KeyboardTeleopNode::stop_motion(const std::string &reason)
   continuous_repeat_seen_ = false;
   active_cmd_ = ActiveCmd{};
   have_active_cmd_ = true; // once with ActiveCmdType::NONE to stop motion.
+  
+  if (speed_mode_ != SpeedMode::STEP) active_char_ = 0;
 }
 
 void KeyboardTeleopNode::switch_control_mode()
