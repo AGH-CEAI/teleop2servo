@@ -21,11 +21,11 @@ teleop2servo:
       - wrist_3_joint
 
     # speeds
-    joint_vel_step: 0.05
-    joint_vel_cont_max: 0.3
+    joint_vel_step: 0.3
+    joint_vel_cont_max: 1.0
 
-    twist_lin_step: 0.01
-    twist_lin_cont_max: 0.1
+    twist_lin_step: 0.3
+    twist_lin_cont_max: 1.0
 
-    twist_rot_step: 0.05
-    twist_rot_cont_max: 0.25
+    twist_rot_step: 0.3
+    twist_rot_cont_max: 1.0

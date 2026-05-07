@@ -19,6 +19,8 @@ ros2 run teleop2servo keyboard_teleop_node --ros-args --params-file "path to /te
 
 > ⚠️ **IMPORTANT:**
 > Make sure MoveIt Servo is running and the terminal window has focus.
+>
+> For more details, see: https://github.com/AGH-CEAI/aegis_ros/tree/humble-devel/aegis_moveit_config
 
 ## License
 Apache 2.0
