@@ -11,18 +11,20 @@ const std::string JOY_TOPIC = "/joy";
 
 namespace teleop2servo
 {
-    class GamepadTeleopNode : public rclcpp::Node
-    {
-    public:
-        GamepadTeleopNode(const rclcpp::NodeOptions& options);
-        ~GamepadTeleopNode() override;
 
-    private:
-        rclcpp::Subscription<sensor_msgs::msg::Joy>::SharedPtr joy_sub_;
+class GamepadTeleopNode : public rclcpp::Node
+{
+public:
+    GamepadTeleopNode(const rclcpp::NodeOptions& options);
+    ~GamepadTeleopNode() override;
 
-        void print_gamepad_layout();
+private:
+    rclcpp::Subscription<sensor_msgs::msg::Joy>::SharedPtr joy_sub_;
 
-    };
+    void print_gamepad_layout();
+
+    void load_parameters();
+};
 
 } // namespace teleop2servo
 

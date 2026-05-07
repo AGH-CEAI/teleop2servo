@@ -1,8 +1,7 @@
 #ifndef TELEOP2SERVO__GAMEPAD_CONFIG_HPP_
 #define TELEOP2SERVO__GAMEPAD_CONFIG_HPP_
 
-
-enum Axis
+enum AXIS
 {
     LEFT_STICK_X = 0,
     LEFT_STICK_Y = 1,
@@ -13,7 +12,8 @@ enum Axis
     LEFT_TRIGGER = 6,
     RIGHT_TRIGGER = 7
 };
-enum Button
+
+enum BUTTONS
 {
     LEFT_MOUSE_TOUCH = 0,
     RIGHT_MOUSE_TOUCH= 1,

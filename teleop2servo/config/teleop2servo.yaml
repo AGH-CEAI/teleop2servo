@@ -4,6 +4,9 @@ teleop2servo:
 
     step_publish_ticks: 25
 
+    # joy topic
+
+
     # serwo topics
     twist_topic: "/servo_node/delta_twist_cmds"
     joint_topic: "/servo_node/delta_joint_cmds"
