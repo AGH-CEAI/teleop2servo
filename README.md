@@ -7,6 +7,11 @@ ROS 2 teleoperation node for controlling a robot using MoveIt Servo with various
 * Clean shutdown with Ctrl+C
 
 ## Run
+> ⚠️ **IMPORTANT:**
+> Make sure MoveIt Servo is running and the terminal window has focus.
+>
+> For more details, see: https://github.com/AGH-CEAI/aegis_ros/tree/humble-devel/aegis_moveit_config
+
 ### For gamepad input
 > **Note:**
 > Make sure the ROS 2 joy package is installed, e.g.:
@@ -15,8 +20,6 @@ ROS 2 teleoperation node for controlling a robot using MoveIt Servo with various
 ```bash
 ros2 launch teleop2servo gamepad_teleop.launch.py
 ```
-> ⚠️ **IMPORTANT:**
-> Make sure MoveIt Servo is running and the terminal window has focus.
 
 ## License
 Apache 2.0
