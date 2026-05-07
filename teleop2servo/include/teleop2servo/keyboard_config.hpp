@@ -1,19 +1,9 @@
 #ifndef TELEOP2SERVO__KEYBOARD_CONFIG_HPP_
 #define TELEOP2SERVO__KEYBOARD_CONFIG_HPP_
 
-// special key
 #define KEYCODE_TAB 0x09
-#define KEYCODE_S 0x73
+#define KEYCODE_CAPITAL_S 0x53
 #define KEYCODE_SPACE 0x20
-
-//cartesian move
-#define KEYCODE_RIGHT 0x43
-#define KEYCODE_LEFT 0x44
-#define KEYCODE_UP 0x41
-#define KEYCODE_DOWN 0x42
-#define KEYCODE_DOT 0x2E
-#define KEYCODE_SEMICOLON 0x3B
-#define KEYCODE_QUESTION 0x3F
 
 #define KEYCODE_1 0x31
 #define KEYCODE_2 0x32
@@ -27,5 +17,9 @@
 #define KEYCODE_R 0x72
 #define KEYCODE_T 0x74
 #define KEYCODE_Y 0x79
+#define KEYCODE_A 0x61
+#define KEYCODE_S 0x73
+#define KEYCODE_D 0x64
+
 
 #endif  // TELEOP2SERVO__KEYBOARD_CONFIG_HPP_
