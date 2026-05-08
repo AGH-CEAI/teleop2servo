@@ -33,12 +33,12 @@ enum class Button : int
     power_on_off = 12,
     left_stick_button = 13,
     right_mouse_button = 14,
-    left_mouse_top_button = 15,
-    left_mouse_down_button = 16,
-    left_mouse_left_button = 17,
-    left_mouse_right_button = 18,
-    left_back_button = 19,
-    right_back_button = 20
+    left_back_button = 15,
+    right_back_button = 16,
+    left_mouse_top_button = 17,
+    left_mouse_down_button = 18,
+    left_mouse_left_button = 19,
+    left_mouse_right_button = 20,
 };
 
 } // namespace teleop2servo
