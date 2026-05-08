@@ -29,9 +29,9 @@ struct ActiveCmd
 
 struct TeleopState
 {
-  ControlMode control_mode(ControlMode::JOINT);
-  SpeedMode speed_mode(SpeedMode::STEP);
-  ActiveCmd active_cmd{};
+  ControlMode control_mode{ControlMode::JOINT};
+  SpeedMode speed_mode{SpeedMode::STEP};
+  ActiveCmd active_cmd;
   bool have_active_cmd{false};
   rclcpp::Time last_input_time;
 };
