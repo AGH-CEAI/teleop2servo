@@ -14,7 +14,7 @@ def generate_launch_description():
         name="teleop2servo_container",
         namespace="",
         package="rclcpp_components",
-        executable="component_container_mt",
+        executable="component_container_mt",  # MultiThreadedExecutor
         output="screen",
         composable_node_descriptions=[
             ComposableNode(

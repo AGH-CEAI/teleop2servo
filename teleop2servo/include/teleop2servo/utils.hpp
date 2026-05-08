@@ -14,21 +14,28 @@
 
 namespace teleop2servo
 {
+
 enum class ControlMode {JOINT, BASE, TOOL};
 enum class SpeedMode {STEP, CONT_P5, CONT_P10, CONT_P25};
-
 enum class ActiveCmdType { NONE, JOINT, TWIST };
 
-struct ActiveCmdGamepad
+struct ActiveCmd
 {
   ActiveCmdType type{ActiveCmdType::NONE};
-
   std::vector<double> joint_velocities;
-
   geometry_msgs::msg::Twist twist;
-
   std::string frame_id{"base_link"};
 };
+
+struct TeleopState
+{
+  ControlMode control_mode(ControlMode::JOINT);
+  SpeedMode speed_mode(SpeedMode::STEP);
+  ActiveCmd active_cmd{};
+  bool have_active_cmd{false};
+  rclcpp::Time last_input_time;
+};
+
 
 inline double get_speed_val(SpeedMode m)
 {

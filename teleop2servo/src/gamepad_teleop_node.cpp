@@ -1,10 +1,15 @@
 #include <string>
+#include <functional>
+#include <algorithm>
+#include <chrono>
+#include <mutex>
 
 #include <rclcpp/rclcpp.hpp>
 
 #include "teleop2servo/gamepad_teleop_node.hpp"
 #include "teleop2servo/utils.hpp"
 #include "teleop2servo/teleop_config.hpp"
+#include "teleop2servo/gamepad_config.hpp"
 
 namespace teleop2servo{
 
@@ -58,22 +63,22 @@ void GamepadTeleopNode::setup_subscribers()
     joy_sub_ = create_subscription<sensor_msgs::msg::Joy>(
     "/joy",
     rclcpp::SensorDataQoS(),
-    std::bind(&GamepadTeleopNode::joyCallback, this, _1)
+    std::bind(&GamepadTeleopNode::joy_callback, this, _1)
     );
 }
 
 void GamepadTeleopNode::setup_publishers()
 {
-    twist_pub_ = this->create_publisher<geometry_msgs::msg::TwistStamped>(twist_topic_, queue_size_);
-    joint_pub_ = this->create_publisher<control_msgs::msg::JointJog>(joint_topic_, queue_size_);
+    twist_pub_ = this->create_publisher<geometry_msgs::msg::TwistStamped>(config_.twist_topic, config_.queue_size);
+    joint_pub_ = this->create_publisher<control_msgs::msg::JointJog>(config_.joint_topic, config_.queue_size);
 }
 
 void GamepadTeleopNode::setup_timers()
 {
-  const int hz = std::max(1, publish_hz_);
+  const int hz = std::max(1, config_.publish_hz);
   pub_timer_ = this->create_wall_timer(
     std::chrono::milliseconds(1000 / hz),
-    std::bind(&KeyboardTeleopNode::publish_loop, this)
+    std::bind(&GamepadTeleopNode::publish_loop, this)
   );
 }
 
@@ -110,45 +115,123 @@ void GamepadTeleopNode::print_gamepad_layout_and_instructions()
     RCLCPP_INFO(get_logger(), COLOR_RED "Ctrl+C to exit." COLOR_RESET);
 }
 
-void GamepadTeleopNode::joy_callback(const sensor_msgs::msg::Joy::SharedPtr msg)
+bool GamepadTeleopNode::button_pressed(
+    const sensor_msgs::msg::Joy::SharedPtr msg,
+    Button button) const
 {
-    // TODO
+    const int index = static_cast<int>(button);
+    return msg &&
+        index >= 0 &&
+        static_cast<size_t>(index) < msg->buttons.size() &&
+        msg->buttons[index] != 0;
 }
 
-void KeyboardTeleopNode::stop_motion(const std::string &reason)
+bool GamepadTeleopNode::rising_edge(
+    const sensor_msgs::msg::Joy::SharedPtr msg,
+    Button button) const
+{
+    const bool now_pressed = button_pressed(msg, button);
+    const bool was_pressed = button_pressed(previous_joy_msg_, button);
+    return now_pressed && !was_pressed;
+}
+
+double GamepadTeleopNode::axis_value(
+    const sensor_msgs::msg::Joy::SharedPtr msg,
+    Axis axis) const
+{
+    const int index = static_cast<int>(axis);
+    if (!msg || index < 0 || static_cast<size_t>(index) >= msg->axes.size()) return 0.0;
+    const double value = static_cast<double>(msg->axes[index]);
+    return value;
+}
+
+void GamepadTeleopNode::stop_motion(const std::string &reason)
 {
     (void)reason;
-    // TODO
+    {
+        std::scoped_lock lock(state_mutex_);
+        state_.active_cmd = ActiveCmd{};
+        state_.have_active_cmd = true; // once send zeros
+    }
 }
 
-void KeyboardTeleopNode::switch_control_mode()
+void GamepadTeleopNode::switch_control_mode()
 {
     stop_motion("mode switched");
-    control_mode_ = next(control_mode_);
+    {
+        std::scoped_lock lock(state_mutex_);
+        state_.control_mode = next(state_.control_mode);
+    }
     print_gamepad_layout_and_instructions();
 }
 
-void KeyboardTeleopNode::switch_speed_mode()
+void GamepadTeleopNode::switch_speed_mode()
 {
     stop_motion("speed switched");
-    speed_mode_ = next(speed_mode_);
+    {
+        std::scoped_lock lock(state_mutex_);
+        state_.speed_mode = next(state_.speed_mode);
+    }
     print_gamepad_layout_and_instructions();
 }
 
-double KeyboardTeleopNode::joint_vel_for_speed_mode() const
+double GamepadTeleopNode::joint_vel_for_speed_mode() const
 {
-    return (speed_mode_ == SpeedMode::STEP) ? joint_vel_step_ : joint_vel_cont_max_ * get_speed_val(speed_mode_);
+    return (state_.speed_mode == SpeedMode::STEP) ? config_.joint_vel_step : config_.joint_vel_cont_max * get_speed_val(state_.speed_mode);
 }
 
-double KeyboardTeleopNode::twist_lin_for_speed_mode() const
+double GamepadTeleopNode::twist_lin_for_speed_mode() const
 {
-    return (speed_mode_ == SpeedMode::STEP) ? twist_lin_step_ : twist_lin_cont_max_ * get_speed_val(speed_mode_);
+    return (state_.speed_mode == SpeedMode::STEP) ? config_.twist_lin_step : config_.twist_lin_cont_max * get_speed_val(state_.speed_mode);
 }
 
-double KeyboardTeleopNode::twist_rot_for_speed_mode() const
+double GamepadTeleopNode::twist_rot_for_speed_mode() const
 {
-    return (speed_mode_ == SpeedMode::STEP) ? twist_rot_step_ : twist_rot_cont_max_ * get_speed_val(speed_mode_);
+    return (state_.speed_mode == SpeedMode::STEP) ? config_.twist_rot_step : config_.twist_rot_cont_max * get_speed_val(state_.speed_mode);
 }
+
+void GamepadTeleopNode::check_state_buttons(
+    const sensor_msgs::msg::Joy::SharedPtr msg
+)
+{
+    if (rising_edge(msg, Button::b)){
+        stop_motion();
+        previous_joy_msg_ = msg;
+        return;
+    }
+
+    if (rising_edge(msg, Button::x)){
+        switch_control_mode();
+        previous_joy_msg_ = msg;
+        return;
+    }
+
+    if (rising_edge(msg, Button::y)){
+        switch_speed_mode();
+        previous_joy_msg_ = msg;
+        return;
+    }
+}
+
+void GamepadTeleopNode::joy_callback(const sensor_msgs::msg::Joy::SharedPtr msg)
+{
+    if (!previous_joy_msg_) {
+        previous_joy_msg_ = msg;
+        return;
+    }
+
+    check_state_buttons(msg);
+
+    // After any of this lets go to the next callback
+
+    // if no changes in state
+    // actualize the twist or joint msg (in case of mode_state)
+    // use mutex if needed.
+}
+
+
+
+// ------ TODO: publish logic
 
 void KeyboardTeleopNode::publish_stop_once(const rclcpp::Time & now)
 {

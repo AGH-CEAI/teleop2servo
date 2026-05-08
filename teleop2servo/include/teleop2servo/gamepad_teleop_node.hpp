@@ -20,9 +20,23 @@ public:
     ~GamepadTeleopNode() override;
 
 private:
-    // ==== init ====
     TeleopConfig config_;
 
+    TeleopState state_;
+
+    sensor_msgs::msg::Joy::SharedPtr previous_joy_msg_; // only used inside joy_callback()
+
+    // ==== ROS ====
+    rclcpp::Subscription<sensor_msgs::msg::Joy>::SharedPtr joy_sub_;
+
+    std::mutex state_mutex_;
+
+    rclcpp::Publisher<geometry_msgs::msg::TwistStamped>::SharedPtr twist_pub_;
+    rclcpp::Publisher<control_msgs::msg::JointJog>::SharedPtr joint_pub_;
+
+    rclcpp::TimerBase::SharedPtr pub_timer_;
+
+    // ==== init ====
     template<typename T>
     void loadParam(const std::string& name, T& value);
     void load_parameters();
@@ -34,21 +48,10 @@ private:
     void print_joint_instructions();
     void print_cartesian_instructions();
 
-    // ==== state ====
-    ControlMode control_mode_{ControlMode::JOINT};
-    SpeedMode speed_mode_{SpeedMode::STEP};
-
-    ActiveCmdGamepad active_cmd_{};
-
-    // ==== ROS ====
-    rclcpp::Subscription<sensor_msgs::msg::Joy>::SharedPtr joy_sub_;
-
-    std::mutex state_mutex_;
-
-    rclcpp::Publisher<geometry_msgs::msg::TwistStamped>::SharedPtr twist_pub_;
-    rclcpp::Publisher<control_msgs::msg::JointJog>::SharedPtr joint_pub_;
-
-    rclcpp::TimerBase::SharedPtr pub_timer_;
+    bool button_pressed(const sensor_msgs::msg::Joy::SharedPtr msg, Button button) const;
+    bool rising_edge(const sensor_msgs::msg::Joy::SharedPtr msg, Button button) const;
+    double axis_value(const sensor_msgs::msg::Joy::SharedPtr msg, Axis axis) const;
+    void check_state_buttons(const sensor_msgs::msg::Joy::SharedPtr msg);
 
     void joy_callback(const sensor_msgs::msg::Joy::SharedPtr msg);
 
