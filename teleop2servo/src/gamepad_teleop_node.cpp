@@ -8,7 +8,7 @@
 #include <rclcpp/rclcpp.hpp>
 
 #include "teleop2servo/gamepad_teleop_node.hpp"
-#include "teleop2servo/utils.hpp"
+#include "teleop2servo/teleop_utils.hpp"
 #include "teleop2servo/teleop_config.hpp"
 #include "teleop2servo/gamepad_config.hpp"
 
@@ -85,7 +85,7 @@ void GamepadTeleopNode::setup_timers()
 
 void GamepadTeleopNode::print_gamepad_layout_and_instructions()
 {
-    RCLCPP_INFO(get_logger(), COLOR_BOLD "\n\n================ TELEOP GAMEPAD =================" COLOR_RESET);
+    RCLCPP_INFO(get_logger(), Color::BOLD "\n\n================ TELEOP GAMEPAD =================" Color::RESET);
     RCLCPP_INFO(get_logger(), R"(
 
                                [ BACK ]     [ START ]
@@ -97,24 +97,24 @@ void GamepadTeleopNode::print_gamepad_layout_and_instructions()
                     /      (LX / LY)            (RX / RY)     \
                     |                                          |
                     |          D-PAD              )"
-                    COLOR_YELLOW "Y" COLOR_RESET R"(            |
+                    Color::YELLOW "Y" Color::RESET R"(            |
                     |         [↑] [↓]         )"
-                    COLOR_CYAN "X" COLOR_RESET R"(       )"
-                           COLOR_RED "B" COLOR_RESET R"(        |
+                    Color::CYAN "X" Color::RESET R"(       )"
+                            Color::RED "B" Color::RESET R"(        |
                     \         [←] [→]             )"
-                     COLOR_GREEN "A" COLOR_RESET R"(           /
+                     Color::GREEN "A" Color::RESET R"(           /
                      '.                                     .'
                        '-----------------------------------'
     )");
 
     RCLCPP_INFO(get_logger(), "---------------------------");
     RCLCPP_INFO(get_logger(),
-        "Mode: " COLOR_CYAN "%s" COLOR_RESET
-        " | Speed: " COLOR_YELLOW "%s" COLOR_RESET,
+        "Mode: " Color::CYAN "%s" Color::RESET
+        " | Speed: " Color::YELLOW "%s" Color::RESET,
         to_string(state_.control_mode).c_str(),
         to_string(state_.speed_mode).c_str()
     );
-    RCLCPP_INFO(get_logger(), COLOR_RED "Ctrl+C to exit." COLOR_RESET);
+    RCLCPP_INFO(get_logger(), Color::RED "Ctrl+C to exit." Color::RESET);
 }
 
 bool GamepadTeleopNode::button_pressed(

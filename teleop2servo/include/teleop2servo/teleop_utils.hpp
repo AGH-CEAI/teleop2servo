@@ -1,16 +1,24 @@
-#ifndef TELEOP2SERVO__UTILS_HPP_
-#define TELEOP2SERVO__UTILS_HPP_
+#ifndef TELEOP2SERVO__TELEOP_UTILS_HPP_
+#define TELEOP2SERVO__TELEOP_UTILS_HPP_
 
 #include <string>
+#include <string_view>
 #include <vector>
 
-#define COLOR_RESET   "\033[0m"
-#define COLOR_RED     "\033[31m"
-#define COLOR_GREEN   "\033[32m"
-#define COLOR_YELLOW  "\033[33m"
-#define COLOR_BLUE    "\033[34m"
-#define COLOR_CYAN    "\033[36m"
-#define COLOR_BOLD    "\033[1m"
+#include <geometry_msgs/msg/twist.hpp>
+#include <rclcpp/time.hpp>
+
+struct Color
+{
+  static constexpr const char* RESET  = "\033[0m";
+  static constexpr const char* RED    = "\033[31m";
+  static constexpr const char* GREEN  = "\033[32m";
+  static constexpr const char* YELLOW = "\033[33m";
+  static constexpr const char* BLUE   = "\033[34m";
+  static constexpr const char* CYAN   = "\033[36m";
+  static constexpr const char* BOLD   = "\033[1m";
+};
+
 
 namespace teleop2servo
 {
@@ -37,7 +45,7 @@ struct TeleopState
 };
 
 
-inline double get_speed_val(SpeedMode m)
+constexpr double get_speed_val(SpeedMode m)
 {
   switch (m) {
     case SpeedMode::CONT_P5:   return 0.05;
@@ -47,40 +55,40 @@ inline double get_speed_val(SpeedMode m)
   }
 }
 
-inline ControlMode next(ControlMode mode)
+constexpr ControlMode next(ControlMode mode)
 {
     switch (mode)
     {
-        case ControlMode::JOINT: return ControlMode::BASE;
+        case ControlMode::JOINT:  return ControlMode::BASE;
         case ControlMode::BASE:   return ControlMode::TOOL;
         case ControlMode::TOOL:   return ControlMode::JOINT;
+        default:                  return ControlMode::JOINT;
     }
-    return ControlMode::JOINT; // fallback
 }
 
-inline SpeedMode next(SpeedMode mode)
+constexpr SpeedMode next(SpeedMode mode)
 {
   switch(mode)
   {
-    case SpeedMode::STEP: return SpeedMode::CONT_P5;
-    case SpeedMode::CONT_P5: return SpeedMode::CONT_P10;
+    case SpeedMode::STEP:     return SpeedMode::CONT_P5;
+    case SpeedMode::CONT_P5:  return SpeedMode::CONT_P10;
     case SpeedMode::CONT_P10: return SpeedMode::CONT_P25;
     case SpeedMode::CONT_P25: return SpeedMode::STEP;
+    default:                  return SpeedMode::STEP;
   }
-  return SpeedMode::STEP; // fallback
 }
 
-inline std::string to_string(ControlMode m)
+constexpr std::string_view to_string(ControlMode m)
 {
   switch (m) {
-    case ControlMode::JOINT: return "JOINT";
-    case ControlMode::BASE: return "BASE";
-    case ControlMode::TOOL: return "TOOL";
-    default: return "UNKNOWN";
+    case ControlMode::JOINT:  return "JOINT";
+    case ControlMode::BASE:   return "BASE";
+    case ControlMode::TOOL:   return "TOOL";
+    default:                  return "UNKNOWN";
   }
 }
 
-inline std::string to_string(SpeedMode m)
+constexpr std::string_view to_string(SpeedMode m)
 {
   switch (m) {
     case SpeedMode::STEP:      return "STEP";
@@ -93,4 +101,4 @@ inline std::string to_string(SpeedMode m)
 
 } //namespace teleop2servo
 
-#endif  // TELEOP2SERVO__UTILS_HPP_
+#endif  // TELEOP2SERVO__TELEOP_UTILS_HPP_

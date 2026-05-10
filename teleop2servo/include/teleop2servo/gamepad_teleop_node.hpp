@@ -9,7 +9,7 @@
 #include <geometry_msgs/msg/twist_stamped.hpp>
 #include <control_msgs/msg/joint_jog.hpp>
 #include "teleop2servo/teleop_config.hpp"
-#include "teleop2servo/utils.hpp"
+#include "teleop2servo/teleop_utils.hpp"
 #include "teleop2servo/gamepad_config.hpp"
 
 namespace teleop2servo

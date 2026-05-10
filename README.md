@@ -7,13 +7,13 @@ ROS 2 teleoperation node for controlling a robot using MoveIt Servo with various
 * Clean shutdown with Ctrl+C
 
 ## Run
-> ⚠️ **IMPORTANT:**
+> [!IMPORTANT]
 > Make sure MoveIt Servo is running and the terminal window has focus.
 >
 > For more details, see: https://github.com/AGH-CEAI/aegis_ros/tree/humble-devel/aegis_moveit_config
 
 ### For gamepad input
-> **Note:**
+> [!NOTE]
 > Make sure the ROS 2 joy package is installed, e.g.:
 > `sudo apt install ros-$ROS_DISTRO-joy`
 
