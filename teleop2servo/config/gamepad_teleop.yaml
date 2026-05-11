@@ -1,0 +1,32 @@
+gamepad_teleop_node:
+  ros__parameters:
+    servo_publish_hz: 250.0
+    servo_ticks_per_policy_step: 10
+
+    joy_topic: "/joy"
+
+    # servo topics
+    twist_topic: "/servo_node/delta_twist_cmds"
+    joint_topic: "/servo_node/delta_joint_cmds"
+    queue_size: 10
+
+    base_frame_id: "base_link"
+    ee_frame_id: "tool0"
+
+    joint_names:
+      - shoulder_pan_joint
+      - shoulder_lift_joint
+      - elbow_joint
+      - wrist_1_joint
+      - wrist_2_joint
+      - wrist_3_joint
+
+    # speeds
+    joint_vel_step: 0.1       # normalized input [-1,1] -> multiplied by Servo scale.joint
+    joint_vel_cont_max: 0.8   # normalized input [-1,1] -> multiplied by Servo scale.joint
+
+    twist_lin_step: 0.1       # normalized input [-1,1] -> multiplied by Servo scale.linear
+    twist_lin_cont_max: 0.5   # normalized input [-1,1] -> multiplied by Servo scale.linear
+
+    twist_ang_step: 0.1       # normalized input [-1,1] -> multiplied by Servo scale.rotational
+    twist_ang_cont_max: 0.8   # normalized input [-1,1] -> multiplied by Servo scale.rotational

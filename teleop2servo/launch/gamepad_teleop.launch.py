@@ -10,7 +10,7 @@ def generate_launch_description():
     config_file = os.path.join(
         get_package_share_directory("teleop2servo"),
         "config",
-        "gamepad_teleop_node.yaml",
+        "gamepad_teleop.yaml",
     )
     container = ComposableNodeContainer(
         name="teleop2servo_container",
@@ -20,15 +20,15 @@ def generate_launch_description():
         output="screen",
         composable_node_descriptions=[
             ComposableNode(
+                package="joy",
+                plugin="joy::Joy",
+                name="joy_node",
+            ),
+            ComposableNode(
                 package="teleop2servo",
                 plugin="teleop2servo::GamepadTeleopNode",
                 name="gamepad_teleop_node",
                 parameters=[config_file],
-            ),
-            ComposableNode(
-                package="joy",
-                plugin="joy::Joy",
-                name="joy_node",
             ),
         ],
     )

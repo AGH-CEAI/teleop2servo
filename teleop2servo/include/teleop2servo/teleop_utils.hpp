@@ -42,7 +42,7 @@ struct TeleopState
   ActiveCmd active_cmd;
   int remaining_step_ticks = 0;
   bool have_active_cmd{false};
-  rclcpp::Time last_input_time;
+  bool stop_button_pressed{true};
 };
 
 

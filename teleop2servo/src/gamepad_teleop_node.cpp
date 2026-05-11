@@ -85,60 +85,37 @@ void GamepadTeleopNode::setup_timers()
 
 void GamepadTeleopNode::print_gamepad_layout_and_instructions()
 {
-    RCLCPP_INFO(get_logger(),
-        "%s\n\n================ TELEOP GAMEPAD =================%s",
-        Color::BOLD,
-        Color::RESET
-    );
+    {
+        std::scoped_lock lock(state_mutex_);
+        TeleopState state = state_;
+    }
 
-    const std::string art =
-        R"(
-                               [ BACK ]     [ START ]
-                    [ LB ]                               [ RB ]
-                    [ LT ]                               [ RT ]
-                        .---------------------------------.
-                      .'                                   '.
-                     /    LEFT STICK           RIGHT STICK   \
-                    /      (LX / LY)            (RX / RY)     \
-                    |                                          |
-                    |          D-PAD              )" +
-        std::string(Color::YELLOW) + "Y" + Color::RESET +
-        R"(            |
-                    |         [↑] [↓]         )" +
-        std::string(Color::CYAN) + "X" + Color::RESET +
-        R"(       )" +
-        std::string(Color::RED) + "B" + Color::RESET +
-        R"(        |
-                    \         [←] [→]             )" +
-        std::string(Color::GREEN) + "A" + Color::RESET +
-        R"(           /
-                     '.                                     .'
-                       '-----------------------------------'
-        )";
+}
 
-    RCLCPP_INFO(get_logger(), "%s", art.c_str());
-    RCLCPP_INFO(get_logger(), "---------------------------");
-    RCLCPP_INFO(
-        get_logger(),
-        "Mode: %s%s%s | Speed: %s%s%s",
-        Color::CYAN,
-        to_string(state_.control_mode).data(),
-        Color::RESET,
-        Color::YELLOW,
-        to_string(state_.speed_mode).data(),
-        Color::RESET
-    );
-    RCLCPP_INFO(get_logger(), "---------------------------");
-    RCLCPP_INFO(
-        get_logger(),
-        "%sCtrl+C to exit.%s",
-        Color::RED,
-        Color::RESET
-    );
+std::string GamepadTeleopNode::build_safety_procedure() const
+{
+    std::ostringstream oss;
+
+    oss <<
+    "Enable gamepad: [BACK LEFT] + [BACK RIGHT] + (press) "
+    << Color::RED << "B" << Color::RESET;
+
+    return oss.str();
+}
+
+std::string GamepadTeleopNode::build_footer() const
+{
+    std::ostringstream oss;
+
+    oss <<
+    "\n---------------------------\n"
+    << Color::RED << "Ctrl+C to exit." << Color::RESET;
+
+    return oss.str();
 }
 
 bool GamepadTeleopNode::button_pressed(
-    const sensor_msgs::msg::Joy::SharedPtr msg,
+    const sensor_msgs::msg::Joy::SharedPtr & msg,
     Button button) const
 {
     const int index = static_cast<int>(button);
@@ -149,7 +126,7 @@ bool GamepadTeleopNode::button_pressed(
 }
 
 bool GamepadTeleopNode::rising_edge(
-    const sensor_msgs::msg::Joy::SharedPtr msg,
+    const sensor_msgs::msg::Joy::SharedPtr & msg,
     Button button) const
 {
     const bool now_pressed = button_pressed(msg, button);
@@ -158,13 +135,23 @@ bool GamepadTeleopNode::rising_edge(
 }
 
 double GamepadTeleopNode::axis_value(
-    const sensor_msgs::msg::Joy::SharedPtr msg,
+    const sensor_msgs::msg::Joy::SharedPtr & msg,
     Axis axis) const
 {
     const int index = static_cast<int>(axis);
     if (!msg || index < 0 || static_cast<size_t>(index) >= msg->axes.size()) return 0.0;
     const double value = static_cast<double>(msg->axes[index]);
     return value;
+}
+
+void GamepadTeleopNode::block_gamepad()
+{
+    stop_motion();
+    {
+        std::scoped_lock lock(state_mutex_);
+        state_.stop_button_pressed = true;
+    }
+    print_gamepad_layout_and_instructions();
 }
 
 void GamepadTeleopNode::stop_motion()
@@ -195,7 +182,7 @@ void GamepadTeleopNode::switch_speed_mode()
 }
 
 bool GamepadTeleopNode::joy_in_use(
-    const sensor_msgs::msg::Joy::SharedPtr msg) const
+    const sensor_msgs::msg::Joy::SharedPtr & msg) const
 {
     if (!msg) return false;
     constexpr double eps = 1e-6;
@@ -212,12 +199,34 @@ bool GamepadTeleopNode::joy_in_use(
     return false;
 }
 
+bool GamepadTeleopNode::check_safety_procedure(const sensor_msgs::msg::Joy::SharedPtr & msg)
+{
+    {
+        std::scoped_lock lock(state_mutex_);
+        if (!state_.stop_button_pressed) return true;
+    }
+
+    const bool back_left = button_pressed(msg, Button::left_mouse_left_button); // todo: for genesis: left_back_button
+    const bool back_right = button_pressed(msg, Button::left_mouse_right_button); // right_back_button
+    const bool b_pressed = rising_edge(msg, Button::b);
+    const bool enable_sequence = back_left && back_right && b_pressed;
+
+    if (enable_sequence) {
+        {
+            std::scoped_lock lock(state_mutex_);
+            state_.stop_button_pressed = false;
+        }
+        print_gamepad_layout_and_instructions();
+    }
+    return false;
+}
+
 bool GamepadTeleopNode::check_state_buttons(
-    const sensor_msgs::msg::Joy::SharedPtr msg
+    const sensor_msgs::msg::Joy::SharedPtr & msg
 )
 {
     if (rising_edge(msg, Button::b)) {
-        stop_motion();                          // TODO: block button 'b'
+        block_gamepad();
     } else if (rising_edge(msg, Button::x)) {
         switch_control_mode();
     } else if (rising_edge(msg, Button::y)) {
@@ -230,7 +239,7 @@ bool GamepadTeleopNode::check_state_buttons(
 }
 
 double GamepadTeleopNode::button_pair_direction(
-    const sensor_msgs::msg::Joy::SharedPtr msg,
+    const sensor_msgs::msg::Joy::SharedPtr & msg,
     const Button positive,
     const Button negative,
     const SpeedMode speed_mode) const
@@ -254,7 +263,7 @@ double GamepadTeleopNode::button_pair_direction(
 }
 
 std::pair<double, double> GamepadTeleopNode::axis_direction(
-    const sensor_msgs::msg::Joy::SharedPtr msg,
+    const sensor_msgs::msg::Joy::SharedPtr & msg,
     Axis x_axis,
     Axis y_axis,
     Button step_button,
@@ -291,7 +300,7 @@ std::pair<double, double> GamepadTeleopNode::axis_direction(
 }
 
 void GamepadTeleopNode::create_cmd_joint(
-    const sensor_msgs::msg::Joy::SharedPtr msg,
+    const sensor_msgs::msg::Joy::SharedPtr & msg,
     const SpeedMode speed_mode,
     ActiveCmd& cmd
 )
@@ -336,7 +345,7 @@ void GamepadTeleopNode::create_cmd_joint(
 }
 
 void GamepadTeleopNode::create_cmd_twist(
-    const sensor_msgs::msg::Joy::SharedPtr msg,
+    const sensor_msgs::msg::Joy::SharedPtr & msg,
     const ControlMode control_mode,
     const SpeedMode speed_mode,
     ActiveCmd& cmd
@@ -404,6 +413,11 @@ void GamepadTeleopNode::create_cmd_twist(
 void GamepadTeleopNode::joy_callback(const sensor_msgs::msg::Joy::SharedPtr msg)
 {
     if (!previous_joy_msg_) {
+        previous_joy_msg_ = msg;
+        return;
+    }
+
+    if (!check_safety_procedure(msg)) {
         previous_joy_msg_ = msg;
         return;
     }

@@ -11,6 +11,7 @@
 #include "teleop2servo/teleop_config.hpp"
 #include "teleop2servo/teleop_utils.hpp"
 #include "teleop2servo/gamepad_config.hpp"
+#include "teleop2servo/print_helper.hpp"
 
 namespace teleop2servo
 {
@@ -36,22 +37,23 @@ public:
     void publish_loop();
 
     // ==== input processing ====
-    bool button_pressed(const sensor_msgs::msg::Joy::SharedPtr msg, Button button) const;
-    bool rising_edge(const sensor_msgs::msg::Joy::SharedPtr msg, Button button) const;
-    double axis_value(const sensor_msgs::msg::Joy::SharedPtr msg, Axis axis) const;
+    bool button_pressed(const sensor_msgs::msg::Joy::SharedPtr & msg, Button button) const;
+    bool rising_edge(const sensor_msgs::msg::Joy::SharedPtr & msg, Button button) const;
+    double axis_value(const sensor_msgs::msg::Joy::SharedPtr & msg, Axis axis) const;
 
-    bool check_state_buttons(const sensor_msgs::msg::Joy::SharedPtr msg);
-    bool joy_in_use(const sensor_msgs::msg::Joy::SharedPtr msg) const;
+    bool check_state_buttons(const sensor_msgs::msg::Joy::SharedPtr & msg);
+    bool check_safety_procedure(const sensor_msgs::msg::Joy::SharedPtr & msg);
+    bool joy_in_use(const sensor_msgs::msg::Joy::SharedPtr & msg) const;
 
     double button_pair_direction(
-        const sensor_msgs::msg::Joy::SharedPtr msg,
+        const sensor_msgs::msg::Joy::SharedPtr & msg,
         Button positive,
         Button negative,
         SpeedMode speed_mode
     ) const;
 
     std::pair<double, double> axis_direction(
-        const sensor_msgs::msg::Joy::SharedPtr msg,
+        const sensor_msgs::msg::Joy::SharedPtr & msg,
         Axis x_axis,
         Axis y_axis,
         Button step_button,
@@ -60,19 +62,20 @@ public:
 
     // ==== active command creation ====
     void create_cmd_joint(
-        const sensor_msgs::msg::Joy::SharedPtr msg,
+        const sensor_msgs::msg::Joy::SharedPtr & msg,
         const SpeedMode speed_mode,
         ActiveCmd& cmd
     );
 
     void create_cmd_twist(
-        const sensor_msgs::msg::Joy::SharedPtr msg,
+        const sensor_msgs::msg::Joy::SharedPtr & msg,
         const ControlMode control_mode,
         const SpeedMode speed_mode,
         ActiveCmd& cmd
     );
 
     // ==== mode/state changes ====
+    void block_gamepad();
     void switch_control_mode();
     void switch_speed_mode();
     void stop_motion();
@@ -84,12 +87,14 @@ public:
 
     // ==== logging ====
     void print_gamepad_layout_and_instructions();
-    void print_joint_instructions();
-    void print_cartesian_instructions();
+    std::string build_header() const;
+    std::string build_safety_procedure() const;
+    std::string build_footer() const;
 
 private:
     TeleopConfig config_;
     TeleopState state_;
+    PrintHelper print_helper_;
 
     // previous_joy_msg_ is accessed only from joy_callback().
     sensor_msgs::msg::Joy::SharedPtr previous_joy_msg_;
