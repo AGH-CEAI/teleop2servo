@@ -287,7 +287,7 @@ std::pair<double, double> GamepadTeleopNode::axis_direction(
         return {0.0, 0.0};
     }
 
-    return {y, x};
+    return {x, y};
 }
 
 void GamepadTeleopNode::create_cmd_joint(
@@ -355,7 +355,7 @@ void GamepadTeleopNode::create_cmd_twist(
         ? config_.twist_ang_step
         : config_.twist_ang_cont_max * get_speed_val(speed_mode);
 
-    const auto [linear_x, linear_y] =
+    const auto [linear_y_dir, linear_x_dir] =
         axis_direction(
             msg,
             Axis::left_stick_x,
@@ -364,10 +364,10 @@ void GamepadTeleopNode::create_cmd_twist(
             speed_mode
         );
 
-    const double linear_z =
+    const double linear_z_dir =
         button_pair_direction(msg, Button::left_trigger_button, Button::right_trigger_button, speed_mode);
 
-    const auto [angular_x, angular_y] =
+    const auto [angular_y_dir, angular_x_dir] =
         axis_direction(
             msg,
             Axis::right_mouse_x,
@@ -376,17 +376,17 @@ void GamepadTeleopNode::create_cmd_twist(
             speed_mode
         );
 
-    const double angular_z =
+    const double angular_z_dir =
         button_pair_direction(msg, Button::left_bumper, Button::right_bumper, speed_mode);
 
     // prepare msg
-    cmd.twist_msg.twist.linear.x = linear_x * scale_lin;
-    cmd.twist_msg.twist.linear.y = linear_y * scale_lin;
-    cmd.twist_msg.twist.linear.z = linear_z * scale_lin;
+    cmd.twist_msg.twist.linear.x = linear_x_dir * scale_lin * (-1.0);
+    cmd.twist_msg.twist.linear.y = linear_y_dir * scale_lin * (-1.0);
+    cmd.twist_msg.twist.linear.z = linear_z_dir * scale_lin;
 
-    cmd.twist_msg.twist.angular.x = angular_x * scale_ang;
-    cmd.twist_msg.twist.angular.y = angular_y * scale_ang;
-    cmd.twist_msg.twist.angular.z = angular_z * scale_ang;
+    cmd.twist_msg.twist.angular.x = angular_x_dir * scale_ang;
+    cmd.twist_msg.twist.angular.y = angular_y_dir * scale_ang;
+    cmd.twist_msg.twist.angular.z = angular_z_dir * scale_ang;
 
     const bool any_motion =
         std::abs(cmd.twist_msg.twist.linear.x) > 1e-9 ||
