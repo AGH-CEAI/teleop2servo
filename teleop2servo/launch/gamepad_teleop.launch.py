@@ -8,7 +8,9 @@ import os
 
 def generate_launch_description():
     config_file = os.path.join(
-        get_package_share_directory("teleop2servo"), "config", "teleop2servo.yaml"
+        get_package_share_directory("teleop2servo"),
+        "config",
+        "gamepad_teleop_node.yaml",
     )
     container = ComposableNodeContainer(
         name="teleop2servo_container",

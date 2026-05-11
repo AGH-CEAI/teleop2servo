@@ -9,8 +9,8 @@ namespace teleop2servo
 
 struct TeleopConfig
 {
-    double publish_hz = 250.0;
-    int step_publish_ticks = 25;
+    double servo_publish_hz = 250.0;
+    int servo_ticks_per_policy_step = 10;
 
     std::string joy_topic = "/joy";
     std::string twist_topic = "/servo_node/delta_twist_cmds";
@@ -30,8 +30,8 @@ struct TeleopConfig
     double twist_lin_step = 0.01;
     double twist_lin_cont_max = 0.1;
 
-    double twist_rot_step = 0.05;
-    double twist_rot_cont_max = 0.25;
+    double twist_ang_step = 0.05;
+    double twist_ang_cont_max = 0.25;
 };
 
 } // namespace teleop2servo

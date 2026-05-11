@@ -15,7 +15,7 @@
 namespace teleop2servo{
 
 GamepadTeleopNode::GamepadTeleopNode(const rclcpp::NodeOptions& options)
-    : Node("gamepad_teleop", options)
+    : Node("gamepad_teleop_node", options)
 {
     load_parameters();
     setup_subscribers();
@@ -28,7 +28,7 @@ GamepadTeleopNode::GamepadTeleopNode(const rclcpp::NodeOptions& options)
 GamepadTeleopNode::~GamepadTeleopNode() = default;
 
 template<typename T>
-void GamepadTeleopNode::loadParam(const std::string& name, T& value)
+void GamepadTeleopNode::load_param(const std::string& name, T& value)
 {
     this->declare_parameter<T>(name, value);
     this->get_parameter(name, value);
@@ -36,27 +36,27 @@ void GamepadTeleopNode::loadParam(const std::string& name, T& value)
 
 void GamepadTeleopNode::load_parameters()
 {
-    loadParam("publish_hz", config_.publish_hz);
-    loadParam("step_publish_ticks", config_.step_publish_ticks);
+    load_param("servo_publish_hz", config_.servo_publish_hz);
+    load_param("servo_ticks_per_policy_step", config_.servo_ticks_per_policy_step);
 
-    loadParam("joy_topic", config_.joy_topic);
-    loadParam("twist_topic", config_.twist_topic);
-    loadParam("joint_topic", config_.joint_topic);
-    loadParam("queue_size", config_.queue_size);
+    load_param("joy_topic", config_.joy_topic);
+    load_param("twist_topic", config_.twist_topic);
+    load_param("joint_topic", config_.joint_topic);
+    load_param("queue_size", config_.queue_size);
 
-    loadParam("base_frame_id", config_.base_frame_id);
-    loadParam("ee_frame_id", config_.ee_frame_id);
+    load_param("base_frame_id", config_.base_frame_id);
+    load_param("ee_frame_id", config_.ee_frame_id);
 
-    loadParam("joint_names", config_.joint_names);
+    load_param("joint_names", config_.joint_names);
 
-    loadParam("joint_vel_step", config_.joint_vel_step);
-    loadParam("joint_vel_cont_max", config_.joint_vel_cont_max);
+    load_param("joint_vel_step", config_.joint_vel_step);
+    load_param("joint_vel_cont_max", config_.joint_vel_cont_max);
 
-    loadParam("twist_lin_step", config_.twist_lin_step);
-    loadParam("twist_lin_cont_max", config_.twist_lin_cont_max);
+    load_param("twist_lin_step", config_.twist_lin_step);
+    load_param("twist_lin_cont_max", config_.twist_lin_cont_max);
 
-    loadParam("twist_rot_step", config_.twist_rot_step);
-    loadParam("twist_rot_cont_max", config_.twist_rot_cont_max);
+    load_param("twist_ang_step", config_.twist_ang_step);
+    load_param("twist_ang_cont_max", config_.twist_ang_cont_max);
 }
 
 void GamepadTeleopNode::setup_subscribers()
@@ -76,7 +76,7 @@ void GamepadTeleopNode::setup_publishers()
 
 void GamepadTeleopNode::setup_timers()
 {
-  const int hz = std::max(1.0, config_.publish_hz);
+  const int hz = std::max(1.0, config_.servo_publish_hz);
   pub_timer_ = this->create_wall_timer(
     std::chrono::milliseconds(1000 / hz),
     std::bind(&GamepadTeleopNode::publish_loop, this)
@@ -85,9 +85,14 @@ void GamepadTeleopNode::setup_timers()
 
 void GamepadTeleopNode::print_gamepad_layout_and_instructions()
 {
-    RCLCPP_INFO(get_logger(), Color::BOLD "\n\n================ TELEOP GAMEPAD =================" Color::RESET);
-    RCLCPP_INFO(get_logger(), R"(
+    RCLCPP_INFO(get_logger(),
+        "%s\n\n================ TELEOP GAMEPAD =================%s",
+        Color::BOLD,
+        Color::RESET
+    );
 
+    const std::string art =
+        R"(
                                [ BACK ]     [ START ]
                     [ LB ]                               [ RB ]
                     [ LT ]                               [ RT ]
@@ -96,25 +101,40 @@ void GamepadTeleopNode::print_gamepad_layout_and_instructions()
                      /    LEFT STICK           RIGHT STICK   \
                     /      (LX / LY)            (RX / RY)     \
                     |                                          |
-                    |          D-PAD              )"
-                    Color::YELLOW "Y" Color::RESET R"(            |
-                    |         [↑] [↓]         )"
-                    Color::CYAN "X" Color::RESET R"(       )"
-                            Color::RED "B" Color::RESET R"(        |
-                    \         [←] [→]             )"
-                     Color::GREEN "A" Color::RESET R"(           /
+                    |          D-PAD              )" +
+        std::string(Color::YELLOW) + "Y" + Color::RESET +
+        R"(            |
+                    |         [↑] [↓]         )" +
+        std::string(Color::CYAN) + "X" + Color::RESET +
+        R"(       )" +
+        std::string(Color::RED) + "B" + Color::RESET +
+        R"(        |
+                    \         [←] [→]             )" +
+        std::string(Color::GREEN) + "A" + Color::RESET +
+        R"(           /
                      '.                                     .'
                        '-----------------------------------'
-    )");
+        )";
 
+    RCLCPP_INFO(get_logger(), "%s", art.c_str());
     RCLCPP_INFO(get_logger(), "---------------------------");
-    RCLCPP_INFO(get_logger(),
-        "Mode: " Color::CYAN "%s" Color::RESET
-        " | Speed: " Color::YELLOW "%s" Color::RESET,
-        to_string(state_.control_mode).c_str(),
-        to_string(state_.speed_mode).c_str()
+    RCLCPP_INFO(
+        get_logger(),
+        "Mode: %s%s%s | Speed: %s%s%s",
+        Color::CYAN,
+        to_string(state_.control_mode).data(),
+        Color::RESET,
+        Color::YELLOW,
+        to_string(state_.speed_mode).data(),
+        Color::RESET
     );
-    RCLCPP_INFO(get_logger(), Color::RED "Ctrl+C to exit." Color::RESET);
+    RCLCPP_INFO(get_logger(), "---------------------------");
+    RCLCPP_INFO(
+        get_logger(),
+        "%sCtrl+C to exit.%s",
+        Color::RED,
+        Color::RESET
+    );
 }
 
 bool GamepadTeleopNode::button_pressed(
@@ -147,19 +167,16 @@ double GamepadTeleopNode::axis_value(
     return value;
 }
 
-void GamepadTeleopNode::stop_motion(const std::string &reason)
+void GamepadTeleopNode::stop_motion()
 {
-    (void)reason;
-    {
-        std::scoped_lock lock(state_mutex_);
-        state_.active_cmd = ActiveCmd();
-        state_.have_active_cmd = true; // once send zeros
-    }
+    std::scoped_lock lock(state_mutex_);
+    state_.active_cmd = ActiveCmd();
+    state_.have_active_cmd = true; // once send zeros
 }
 
 void GamepadTeleopNode::switch_control_mode()
 {
-    stop_motion("mode switched");
+    stop_motion();
     {
         std::scoped_lock lock(state_mutex_);
         state_.control_mode = next(state_.control_mode);
@@ -169,7 +186,7 @@ void GamepadTeleopNode::switch_control_mode()
 
 void GamepadTeleopNode::switch_speed_mode()
 {
-    stop_motion("speed switched");
+    stop_motion();
     {
         std::scoped_lock lock(state_mutex_);
         state_.speed_mode = next(state_.speed_mode);
@@ -177,59 +194,39 @@ void GamepadTeleopNode::switch_speed_mode()
     print_gamepad_layout_and_instructions();
 }
 
-double GamepadTeleopNode::joint_vel_for_speed_mode(SpeedMode speed_mode) const
-{
-    return (speed_mode == SpeedMode::STEP) ? config_.joint_vel_step : config_.joint_vel_cont_max * get_speed_val(speed_mode);
-}
-
-double GamepadTeleopNode::twist_lin_for_speed_mode(SpeedMode speed_mode) const
-{
-    return (speed_mode == SpeedMode::STEP) ? config_.twist_lin_step : config_.twist_lin_cont_max * get_speed_val(speed_mode);
-}
-
-double GamepadTeleopNode::twist_rot_for_speed_mode(SpeedMode speed_mode) const
-{
-    return (speed_mode == SpeedMode::STEP) ? config_.twist_rot_step : config_.twist_rot_cont_max * get_speed_val(speed_mode);
-}
-
-bool GamepadTeleopNode::joy_is_idle(
+bool GamepadTeleopNode::joy_in_use(
     const sensor_msgs::msg::Joy::SharedPtr msg) const
 {
-    if (!msg) return true;
+    if (!msg) return false;
     constexpr double eps = 1e-6;
     for (const auto& button : msg->buttons) {
         if (button != 0) {
-            return false;
+            return true;
         }
     }
     for (const auto& axis : msg->axes) {
         if (std::fabs(axis) > eps) {
-            return false;
+            return true;
         }
     }
-    return true;
+    return false;
 }
 
 bool GamepadTeleopNode::check_state_buttons(
     const sensor_msgs::msg::Joy::SharedPtr msg
 )
 {
-    if (rising_edge(msg, Button::b)){
-        stop_motion("b pressed");
-        previous_joy_msg_ = msg;
-        return true;
-    }
-    if (rising_edge(msg, Button::x)){
+    if (rising_edge(msg, Button::b)) {
+        stop_motion();                          // TODO: block button 'b'
+    } else if (rising_edge(msg, Button::x)) {
         switch_control_mode();
-        previous_joy_msg_ = msg;
-        return true;
-    }
-    if (rising_edge(msg, Button::y)){
+    } else if (rising_edge(msg, Button::y)) {
         switch_speed_mode();
-        previous_joy_msg_ = msg;
-        return true;
+    } else {
+        return false;
     }
-    return false;
+
+    return true;
 }
 
 double GamepadTeleopNode::button_pair_direction(
@@ -256,40 +253,85 @@ double GamepadTeleopNode::button_pair_direction(
     return pos ? 1.0 : -1.0;
 }
 
+std::pair<double, double> GamepadTeleopNode::axis_direction(
+    const sensor_msgs::msg::Joy::SharedPtr msg,
+    Axis x_axis,
+    Axis y_axis,
+    Button step_button,
+    SpeedMode speed_mode) const
+{
+    auto apply_deadzone = [](double value) {
+        constexpr double deadzone = 0.05;
+        return std::abs(value) < deadzone ? 0.0 : value;
+    };
+
+    auto apply_axis_lock = [](double& x, double& y) {
+        constexpr double dominant = 0.8;
+        constexpr double secondary = 0.2;
+
+        if (std::abs(x) >= dominant && std::abs(y) <= secondary) {
+            x = (x >= 0.0) ? 1.0 : -1.0;
+            y = 0.0;
+        } else if (std::abs(y) >= dominant && std::abs(x) <= secondary) {
+            x = 0.0;
+            y = (y >= 0.0) ? 1.0 : -1.0;
+        }
+    };
+
+    double x = apply_deadzone(axis_value(msg, x_axis));
+    double y = apply_deadzone(axis_value(msg, y_axis));
+
+    apply_axis_lock(x, y);
+
+    if (speed_mode == SpeedMode::STEP && !rising_edge(msg, step_button)) {
+        return {0.0, 0.0};
+    }
+
+    return {y, x};
+}
+
 void GamepadTeleopNode::create_cmd_joint(
     const sensor_msgs::msg::Joy::SharedPtr msg,
     const SpeedMode speed_mode,
     ActiveCmd& cmd
 )
 {
-    cmd.type = ActiveCmdType::JOINT;
     cmd.joint_velocities.assign(config_.joint_names.size(), 0.0);
 
     const double scale =
         (speed_mode == SpeedMode::STEP)
-            ? config_.joint_vel_step
-            : config_.joint_vel_cont_max * get_speed_val(speed_mode);
+        ? config_.joint_vel_step
+        : config_.joint_vel_cont_max * get_speed_val(speed_mode);
 
     const bool modifier = button_pressed(msg, Button::right_mouse_button);
 
-    auto set_joint = [&](std::size_t i, Button positive, Button negative) {
+    auto set_joint = [this, &cmd, &msg, speed_mode, scale](std::size_t i, Button positive, Button negative) {
         if (i >= cmd.joint_velocities.size()) return;
 
-        const double direction =
-            button_pair_direction(msg, positive, negative, speed_mode);
-
+        const double direction = button_pair_direction(msg, positive, negative, speed_mode);
         cmd.joint_velocities[i] = direction * scale;
     };
 
     set_joint(0, Button::left_trigger_button, Button::right_trigger_button);
     set_joint(1, Button::left_bumper, Button::right_bumper);
 
-    if (modifier) {
-        set_joint(4, Button::left_mouse_top_button, Button::left_mouse_down_button); // j5
-        set_joint(5, Button::left_mouse_left_button, Button::left_mouse_right_button);    // j6
-    } else {
+    if (!modifier) {
         set_joint(2, Button::left_mouse_top_button, Button::left_mouse_down_button); // j3
         set_joint(3, Button::left_mouse_left_button, Button::left_mouse_right_button);    // j4
+    } else {
+        set_joint(4, Button::left_mouse_top_button, Button::left_mouse_down_button); // j5
+        set_joint(5, Button::left_mouse_left_button, Button::left_mouse_right_button);    // j6
+    }
+
+    bool any_motion = false;
+    for (double v : cmd.joint_velocities) {
+        if (std::abs(v) > 1e-9) {
+            any_motion = true;
+            break;
+        }
+    }
+    if (any_motion) {
+        cmd.type = ActiveCmdType::JOINT;
     }
 }
 
@@ -300,11 +342,63 @@ void GamepadTeleopNode::create_cmd_twist(
     ActiveCmd& cmd
 )
 {
-    (void)msg;
-    (void)control_mode;
-    (void)speed_mode;
-    (void)cmd;
-    return;
+    cmd.twist_msg.header.frame_id =
+        (control_mode == ControlMode::BASE) ? config_.base_frame_id : config_.ee_frame_id;
+
+    const double scale_lin =
+        (speed_mode == SpeedMode::STEP)
+        ? config_.twist_lin_step
+        : config_.twist_lin_cont_max * get_speed_val(speed_mode);
+
+    const double scale_ang =
+        (speed_mode == SpeedMode::STEP)
+        ? config_.twist_ang_step
+        : config_.twist_ang_cont_max * get_speed_val(speed_mode);
+
+    const auto [linear_x, linear_y] =
+        axis_direction(
+            msg,
+            Axis::left_stick_x,
+            Axis::left_stick_y,
+            Button::left_stick_button,
+            speed_mode
+        );
+
+    const double linear_z =
+        button_pair_direction(msg, Button::left_trigger_button, Button::right_trigger_button, speed_mode);
+
+    const auto [angular_x, angular_y] =
+        axis_direction(
+            msg,
+            Axis::right_mouse_x,
+            Axis::right_mouse_y,
+            Button::right_mouse_button,
+            speed_mode
+        );
+
+    const double angular_z =
+        button_pair_direction(msg, Button::left_bumper, Button::right_bumper, speed_mode);
+
+    // prepare msg
+    cmd.twist_msg.twist.linear.x = linear_x * scale_lin;
+    cmd.twist_msg.twist.linear.y = linear_y * scale_lin;
+    cmd.twist_msg.twist.linear.z = linear_z * scale_lin;
+
+    cmd.twist_msg.twist.angular.x = angular_x * scale_ang;
+    cmd.twist_msg.twist.angular.y = angular_y * scale_ang;
+    cmd.twist_msg.twist.angular.z = angular_z * scale_ang;
+
+    const bool any_motion =
+        std::abs(cmd.twist_msg.twist.linear.x) > 1e-9 ||
+        std::abs(cmd.twist_msg.twist.linear.y) > 1e-9 ||
+        std::abs(cmd.twist_msg.twist.linear.z) > 1e-9 ||
+        std::abs(cmd.twist_msg.twist.angular.x) > 1e-9 ||
+        std::abs(cmd.twist_msg.twist.angular.y) > 1e-9 ||
+        std::abs(cmd.twist_msg.twist.angular.z) > 1e-9;
+
+    if (any_motion) {
+        cmd.type = ActiveCmdType::TWIST;
+    }
 }
 
 void GamepadTeleopNode::joy_callback(const sensor_msgs::msg::Joy::SharedPtr msg)
@@ -316,9 +410,12 @@ void GamepadTeleopNode::joy_callback(const sensor_msgs::msg::Joy::SharedPtr msg)
 
     ActiveCmd cmd = ActiveCmd();
 
-    if (!joy_is_idle(msg)) {
+    if (joy_in_use(msg)) {
 
-        if (check_state_buttons(msg)) return;
+        if (check_state_buttons(msg)) {
+            previous_joy_msg_ = msg;
+            return;
+        }
 
         ControlMode control_mode;
         SpeedMode speed_mode;
@@ -335,9 +432,15 @@ void GamepadTeleopNode::joy_callback(const sensor_msgs::msg::Joy::SharedPtr msg)
             create_cmd_twist(msg, control_mode, speed_mode, cmd);
         }
 
+        if(cmd.type != ActiveCmdType::NONE)
         {
             std::scoped_lock lock(state_mutex_);
             state_.have_active_cmd = true;
+            if (speed_mode == SpeedMode::STEP) {
+                state_.remaining_step_ticks = config_.servo_ticks_per_policy_step;
+            } else {
+                state_.remaining_step_ticks = 0;
+            }
         }
     }
 
@@ -383,6 +486,15 @@ void GamepadTeleopNode::publish_joint(
     joint_pub_->publish(joint_msg);
 }
 
+void GamepadTeleopNode::publish_twist(
+    const rclcpp::Time & now,
+    const ActiveCmd & cmd)
+{
+    auto twist_msg = cmd.twist_msg;
+    twist_msg.header.stamp = now;
+
+    twist_pub_->publish(twist_msg);
+}
 
 void GamepadTeleopNode::publish_loop()
 {
@@ -395,8 +507,15 @@ void GamepadTeleopNode::publish_loop()
 
         cmd = state_.active_cmd;
 
-        if (cmd.type == ActiveCmdType::NONE) {
-            state_.have_active_cmd = false;   // once send zeros to servo
+        if (state_.remaining_step_ticks > 0) {
+            --state_.remaining_step_ticks;
+            if (state_.remaining_step_ticks <= 0) {
+                state_.active_cmd = ActiveCmd();
+                state_.have_active_cmd = true;
+            }
+        }
+        else if (cmd.type == ActiveCmdType::NONE) {
+            state_.have_active_cmd = false;         // once send zeros to servo
         }
     }
 
@@ -413,7 +532,7 @@ void GamepadTeleopNode::publish_loop()
         break;
 
         case ActiveCmdType::TWIST:
-        // publish_twist(now, cmd);
+        publish_twist(now, cmd);
         break;
     }
 }

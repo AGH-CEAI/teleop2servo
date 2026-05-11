@@ -31,7 +31,7 @@ struct ActiveCmd
 {
   ActiveCmdType type{ActiveCmdType::NONE};
   std::vector<double> joint_velocities;
-  geometry_msgs::msg::Twist twist;
+  geometry_msgs::msg::TwistStamped twist_msg;
   std::string frame_id{"base_link"};
 };
 
@@ -40,6 +40,7 @@ struct TeleopState
   ControlMode control_mode{ControlMode::JOINT};
   SpeedMode speed_mode{SpeedMode::STEP};
   ActiveCmd active_cmd;
+  int remaining_step_ticks = 0;
   bool have_active_cmd{false};
   rclcpp::Time last_input_time;
 };

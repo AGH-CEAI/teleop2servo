@@ -1,13 +1,13 @@
-teleop2servo:
+gamepad_teleop_node:
   ros__parameters:
-    publish_hz: 250
-
-    step_publish_ticks: 25
+    teleop:
+      servo_publish_hz: 250.0
+      servo_ticks_per_policy_step: 10
 
     # joy topic
     joy_topic: "/joy"
 
-    # serwo topics
+    # servo topics
     twist_topic: "/servo_node/delta_twist_cmds"
     joint_topic: "/servo_node/delta_joint_cmds"
     queue_size: 10
@@ -24,11 +24,11 @@ teleop2servo:
       - wrist_3_joint
 
     # speeds
-    joint_vel_step: 0.05      # [rad/s]
+    joint_vel_step: 0.5     # [rad/s]
     joint_vel_cont_max: 0.3   # [rad/s]
 
     twist_lin_step: 0.01      # [m/s]
     twist_lin_cont_max: 0.1   # [m/s]
 
-    twist_rot_step: 0.05      # [rad/s]
-    twist_rot_cont_max: 0.25  # [rad/s]
+    twist_ang_step: 0.05      # [rad/s]
+    twist_ang_cont_max: 0.25  # [rad/s]
