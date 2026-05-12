@@ -1,4 +1,7 @@
 #include <string>
+#include <sstream>
+
+#include "rclcpp/rclcpp.hpp"
 
 #include "teleop2servo/teleop_utils.hpp"
 #include "teleop2servo/print_helper.hpp"
@@ -6,14 +9,13 @@
 namespace teleop2servo
 {
 
-
 void PrintHelper::print_gamepad_layout_and_instructions(ControlMode control_mode, SpeedMode speed_mode, bool stop_gamepad)
 {
     std::ostringstream oss;
 
     oss << build_gamepad_header(control_mode, speed_mode, stop_gamepad);
 
-    if (state_.stop_button_pressed == true) {
+    if (speed_mode == true) {
         oss << build_gamepad_safety_procedure();
     }
 
@@ -56,19 +58,19 @@ std::string PrintHelper::build_gamepad_header(ControlMode control_mode, SpeedMod
       '-----'                         '-----')"
     << "\n---------------------------\n"
     << "Status: "
-    << (state_.stop_button_pressed ? Color::RED : Color::RESET)
-    << (state_.stop_button_pressed
+    << (stop_gamepad ? Color::RED : Color::RESET)
+    << (stop_gamepad
         ? "BLOCKED"
         : "Gamepad ready")
     << Color::RESET
     << "\n---------------------------\n"
     << "Mode: "
     << Color::CYAN
-    << to_string(state_.control_mode)
+    << to_string(control_mode)
     << Color::RESET
     << " | Speed: "
     << Color::YELLOW
-    << to_string(state_.speed_mode)
+    << to_string(speed_mode)
     << Color::RESET
     << "\n---------------------------\n";
 

@@ -32,7 +32,7 @@ public:
     template<typename T>
     void load_param(const std::string& name, T& value);
 
-    // ==== callbacks / main loopps ====
+    // ==== callbacks / main loops ====
     void joy_callback(const sensor_msgs::msg::Joy::SharedPtr msg);
     void publish_loop();
 
@@ -93,7 +93,6 @@ public:
 private:
     TeleopConfig config_;
     TeleopState state_;
-    PrintHelper print_helper_;
 
     // previous_joy_msg_ is accessed only from joy_callback().
     sensor_msgs::msg::Joy::SharedPtr previous_joy_msg_;

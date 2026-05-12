@@ -8,7 +8,7 @@
 namespace teleop2servo
 {
 
-class PrintHelper
+class PrintHelper : public rclcpp::Node
 {
 public:
     void print_gamepad_layout_and_instructions(ControlMode control_mode, SpeedMode speed_mode, bool stop_gamepad);
@@ -20,6 +20,5 @@ public:
 };
 
 } // namespace teleop2servo
-
 
 #endif  // TELEOP2SERVO__PRINT_HELPER_HPP_

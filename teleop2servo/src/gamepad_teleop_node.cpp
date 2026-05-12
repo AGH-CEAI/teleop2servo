@@ -87,11 +87,12 @@ void GamepadTeleopNode::setup_timers()
 
 void GamepadTeleopNode::print_gamepad_layout_and_instructions()
 {
+    TeleopState state;
     {
         std::scoped_lock lock(state_mutex_);
-        TeleopState state = state_;
+        state = state_;
     }
-    PrintHelper::print_gamepad_layout_and_instructions(state.control_mode, state.speed_mode, state.stop_button_pressed)
+    PrintHelper.print_gamepad_layout_and_instructions(state.control_mode, state.speed_mode, state.stop_button_pressed);
 }
 
 bool GamepadTeleopNode::button_pressed(
