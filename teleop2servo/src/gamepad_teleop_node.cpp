@@ -18,7 +18,7 @@ namespace teleop2servo{
 GamepadTeleopNode::GamepadTeleopNode(const rclcpp::NodeOptions& options)
     : Node("gamepad_teleop_node", options)
 {
-    // TODO (issue#XX) Change the controller for servo in constructor, after stopping change it back.
+    // TODO (issue#6) Change the controller for servo in constructor, after stopping change it back.
     load_parameters();
     setup_subscribers();
     setup_publishers();
