@@ -188,10 +188,8 @@ bool GamepadTeleopNode::check_safety_procedure(const sensor_msgs::msg::Joy::Shar
         if (!state_.stop_button_pressed) return true;
     }
 
-    const bool back_left = button_pressed(msg, Button::left_mouse_left_button);
-    const bool back_right = button_pressed(msg, Button::left_mouse_right_button);
-    // const bool back_left = button_pressed(msg, Button::left_back_button);
-    // const bool back_right = button_pressed(msg, Button::right_back_button);
+    const bool back_left = button_pressed(msg, Button::left_back_button);
+    const bool back_right = button_pressed(msg, Button::right_back_button);
     const bool b_pressed = rising_edge(msg, Button::b);
     const bool enable_sequence = back_left && back_right && b_pressed;
 
