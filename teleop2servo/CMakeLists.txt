@@ -14,7 +14,7 @@ find_package(rclcpp_components REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(std_msgs REQUIRED)
 
-add_library(gamepad_teleop_node SHARED src/gamepad_teleop_node.cpp)
+add_library(gamepad_teleop_node SHARED src/gamepad_teleop_node.cpp src/print_helper.cpp)
 
 target_include_directories(
   gamepad_teleop_node PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>

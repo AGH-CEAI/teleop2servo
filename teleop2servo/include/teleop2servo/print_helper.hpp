@@ -1,3 +1,5 @@
+
+
 #ifndef TELEOP2SERVO__PRINT_HELPER_HPP_
 #define TELEOP2SERVO__PRINT_HELPER_HPP_
 
@@ -8,15 +10,16 @@
 namespace teleop2servo
 {
 
-class PrintHelper : public rclcpp::Node
+class PrintHelper
 {
 public:
-    void print_gamepad_layout_and_instructions(ControlMode control_mode, SpeedMode speed_mode, bool stop_gamepad);
-    std::string build_gamepad_header(ControlMode control_mode, SpeedMode speed_mode, bool stop_gamepad) const;
-    std::string build_gamepad_safety_procedure() const;
-    std::string build_gamepad_joint_instructions() const;
-    std::string build_gamepad_twist_instructions() const;
-    std::string build_footer() const;
+    static std::string print_gamepad_layout_and_instructions(ControlMode control_mode, SpeedMode speed_mode, bool stop_gamepad);
+private:
+    static std::string build_gamepad_header(ControlMode control_mode, SpeedMode speed_mode, bool stop_gamepad);
+    static std::string build_gamepad_safety_procedure();
+    static std::string build_gamepad_joint_instructions();
+    static std::string build_gamepad_twist_instructions();
+    static std::string build_footer();
 };
 
 } // namespace teleop2servo

@@ -1,30 +1,32 @@
 #include <string>
 #include <sstream>
 
-#include "rclcpp/rclcpp.hpp"
-
 #include "teleop2servo/teleop_utils.hpp"
 #include "teleop2servo/print_helper.hpp"
 
 namespace teleop2servo
 {
 
-void PrintHelper::print_gamepad_layout_and_instructions(ControlMode control_mode, SpeedMode speed_mode, bool stop_gamepad)
+std::string PrintHelper::print_gamepad_layout_and_instructions(ControlMode control_mode, SpeedMode speed_mode, bool stop_gamepad)
 {
     std::ostringstream oss;
 
     oss << build_gamepad_header(control_mode, speed_mode, stop_gamepad);
 
-    if (speed_mode == true) {
+    if (stop_gamepad == true) {
         oss << build_gamepad_safety_procedure();
+    } else if (control_mode == ControlMode::JOINT) {
+        oss << build_gamepad_joint_instructions();
+    } else {
+        oss << build_gamepad_twist_instructions();
     }
 
     oss << build_footer();
 
-    RCLCPP_INFO(get_logger(), "%s", oss.str().c_str());
+    return oss.str();
 }
 
-std::string PrintHelper::build_gamepad_header(ControlMode control_mode, SpeedMode speed_mode, bool stop_gamepad) const
+std::string PrintHelper::build_gamepad_header(ControlMode control_mode, SpeedMode speed_mode, bool stop_gamepad)
 {
     std::ostringstream oss;
 
@@ -33,9 +35,9 @@ std::string PrintHelper::build_gamepad_header(ControlMode control_mode, SpeedMod
     <<"\n\n================ TELEOP GAMEPAD =================\n"
     << Color::RESET
     << R"(
-            [BACK LEFT]      [BACK RIGHT]
-    [ LB ]                               [ RB ]
+           [BACK LEFT]      [BACK RIGHT]
     [ LT ]                               [ RT ]
+    [ LB ]                               [ RB ]
         .---------------------------------.
       .'                                   '.
      /  LEFT D-PAD              RIGHT MOUSE  \
@@ -72,12 +74,25 @@ std::string PrintHelper::build_gamepad_header(ControlMode control_mode, SpeedMod
     << Color::YELLOW
     << to_string(speed_mode)
     << Color::RESET
+    << "\n---------------------------\n"
+    << Color::RED
+    << "B"
+    << Color::RESET
+    << ": Block gamepad\n"
+    << Color::CYAN
+    << "X"
+    << Color::RESET
+    << ": Switch Mode\n"
+    << Color::YELLOW
+    << "Y"
+    << Color::RESET
+    << ": Switch Speed"
     << "\n---------------------------\n";
 
     return oss.str();
 }
 
-std::string PrintHelper::build_gamepad_safety_procedure() const
+std::string PrintHelper::build_gamepad_safety_procedure()
 {
     std::ostringstream oss;
 
@@ -88,7 +103,7 @@ std::string PrintHelper::build_gamepad_safety_procedure() const
     return oss.str();
 }
 
-std::string PrintHelper::build_footer() const
+std::string PrintHelper::build_footer()
 {
     std::ostringstream oss;
 
@@ -99,34 +114,34 @@ std::string PrintHelper::build_footer() const
     return oss.str();
 }
 
-std::string PrintHelper::build_gamepad_joint_instructions() const
+std::string PrintHelper::build_gamepad_joint_instructions()
 {
     std::ostringstream oss;
 
     oss <<
-    "\nJOINT MOVEMENT:\n"
+    "JOINT MOVEMENT:\n"
     << "  J1: [LT] positive / [RT] negative\n"
     << "  J2: [LB] positive / [RB] negative\n"
     << "  J3: D-PAD [UP] positive / [DOWN] negative\n"
     << "  J4: D-PAD [LEFT] positive / [RIGHT] negative\n"
     << "  Hold [RIGHT MOUSE] to control J5/J6 instead:\n"
     << "    J5: D-PAD [UP] positive / [DOWN] negative\n"
-    << "    J6: D-PAD [LEFT] positive / [RIGHT] negative\n";
+    << "    J6: D-PAD [LEFT] positive / [RIGHT] negative";
 
     return oss.str();
 }
 
-std::string PrintHelper::build_gamepad_twist_instructions() const
+std::string PrintHelper::build_gamepad_twist_instructions()
 {
     std::ostringstream oss;
 
     oss <<
-    "\nTWIST MOVEMENT:\n"
+    "TWIST MOVEMENT:\n"
     << "  Linear X/Y: LEFT STICK\n"
     << "  Linear Z: [LT] positive / [RT] negative\n"
     << "  Angular X/Y: RIGHT MOUSE\n"
     << "  Angular Z: [LB] positive / [RB] negative\n"
-    << "  In STEP mode, press the stick/mouse button to apply one step.";
+    << "In STEP mode, press the stick/mouse button to apply one step.";
 
     return oss.str();
 }

@@ -92,7 +92,8 @@ void GamepadTeleopNode::print_gamepad_layout_and_instructions()
         std::scoped_lock lock(state_mutex_);
         state = state_;
     }
-    PrintHelper.print_gamepad_layout_and_instructions(state.control_mode, state.speed_mode, state.stop_button_pressed);
+    std::string oss = PrintHelper::print_gamepad_layout_and_instructions(state.control_mode, state.speed_mode, state.stop_button_pressed);
+    RCLCPP_INFO(get_logger(), "%s", oss.c_str());
 }
 
 bool GamepadTeleopNode::button_pressed(
@@ -187,8 +188,10 @@ bool GamepadTeleopNode::check_safety_procedure(const sensor_msgs::msg::Joy::Shar
         if (!state_.stop_button_pressed) return true;
     }
 
-    const bool back_left = button_pressed(msg, Button::left_back_button);
-    const bool back_right = button_pressed(msg, Button::right_back_button);
+    const bool back_left = button_pressed(msg, Button::left_mouse_left_button);
+    const bool back_right = button_pressed(msg, Button::left_mouse_right_button);
+    // const bool back_left = button_pressed(msg, Button::left_back_button);
+    // const bool back_right = button_pressed(msg, Button::right_back_button);
     const bool b_pressed = rising_edge(msg, Button::b);
     const bool enable_sequence = back_left && back_right && b_pressed;
 
