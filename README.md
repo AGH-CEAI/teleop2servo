@@ -3,7 +3,7 @@ ROS 2 teleoperation node for controlling a robot using MoveIt Servo with various
 
 ## What it does
 * Sends JointJog and TwistStamped commands from keyboard input
-* Supports joint and ~~Cartesian (base) control~~ (underconstruction)
+* Supports joint and cartesian (base frame and tool frame) control
 * Clean shutdown with Ctrl+C
 
 ## Run
@@ -20,6 +20,7 @@ ROS 2 teleoperation node for controlling a robot using MoveIt Servo with various
 ```bash
 ros2 launch teleop2servo gamepad_teleop.launch.py
 ```
+You can change the parameters of `gamepadTeleopNode` in `confiv/gamepad_config.yaml`.
 
 ## License
 Apache 2.0

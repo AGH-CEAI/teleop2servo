@@ -84,12 +84,11 @@ public:
     void publish_stop_once(const rclcpp::Time & now);
     void publish_joint(const rclcpp::Time & now, const ActiveCmd & cmd);
     void publish_twist(const rclcpp::Time & now, const ActiveCmd & cmd);
+    // TODO (issue#XX) enable control of gripper.
 
     // ==== logging ====
     void print_gamepad_layout_and_instructions();
-    std::string build_header() const;
-    std::string build_safety_procedure() const;
-    std::string build_footer() const;
+
 
 private:
     TeleopConfig config_;

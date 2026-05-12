@@ -11,12 +11,14 @@
 #include "teleop2servo/teleop_utils.hpp"
 #include "teleop2servo/teleop_config.hpp"
 #include "teleop2servo/gamepad_config.hpp"
+#include "teleop2servo/print_helper.hpp"
 
 namespace teleop2servo{
 
 GamepadTeleopNode::GamepadTeleopNode(const rclcpp::NodeOptions& options)
     : Node("gamepad_teleop_node", options)
 {
+    // TODO (issue#XX) Change the controller for servo in constructor, after stopping change it back.
     load_parameters();
     setup_subscribers();
     setup_publishers();
@@ -89,29 +91,7 @@ void GamepadTeleopNode::print_gamepad_layout_and_instructions()
         std::scoped_lock lock(state_mutex_);
         TeleopState state = state_;
     }
-
-}
-
-std::string GamepadTeleopNode::build_safety_procedure() const
-{
-    std::ostringstream oss;
-
-    oss <<
-    "Enable gamepad: [BACK LEFT] + [BACK RIGHT] + (press) "
-    << Color::RED << "B" << Color::RESET;
-
-    return oss.str();
-}
-
-std::string GamepadTeleopNode::build_footer() const
-{
-    std::ostringstream oss;
-
-    oss <<
-    "\n---------------------------\n"
-    << Color::RED << "Ctrl+C to exit." << Color::RESET;
-
-    return oss.str();
+    PrintHelper::print_gamepad_layout_and_instructions(state.control_mode, state.speed_mode, state.stop_button_pressed)
 }
 
 bool GamepadTeleopNode::button_pressed(
@@ -206,8 +186,8 @@ bool GamepadTeleopNode::check_safety_procedure(const sensor_msgs::msg::Joy::Shar
         if (!state_.stop_button_pressed) return true;
     }
 
-    const bool back_left = button_pressed(msg, Button::left_mouse_left_button); // todo: for genesis: left_back_button
-    const bool back_right = button_pressed(msg, Button::left_mouse_right_button); // right_back_button
+    const bool back_left = button_pressed(msg, Button::left_back_button);
+    const bool back_right = button_pressed(msg, Button::right_back_button);
     const bool b_pressed = rising_edge(msg, Button::b);
     const bool enable_sequence = back_left && back_right && b_pressed;
 

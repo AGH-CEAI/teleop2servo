@@ -11,10 +11,10 @@ void PrintHelper::print_gamepad_layout_and_instructions(ControlMode control_mode
 {
     std::ostringstream oss;
 
-    oss << build_header(ControlMode control_mode, SpeedMode speed_mode, bool stop_gamepad);
+    oss << build_gamepad_header(control_mode, speed_mode, stop_gamepad);
 
     if (state_.stop_button_pressed == true) {
-        oss << build_safety_procedure();
+        oss << build_gamepad_safety_procedure();
     }
 
     oss << build_footer();
@@ -22,7 +22,7 @@ void PrintHelper::print_gamepad_layout_and_instructions(ControlMode control_mode
     RCLCPP_INFO(get_logger(), "%s", oss.str().c_str());
 }
 
-std::string PrintHelper::build_header(ControlMode control_mode, SpeedMode speed_mode, bool stop_gamepad) const
+std::string PrintHelper::build_gamepad_header(ControlMode control_mode, SpeedMode speed_mode, bool stop_gamepad) const
 {
     std::ostringstream oss;
 
@@ -75,16 +75,59 @@ std::string PrintHelper::build_header(ControlMode control_mode, SpeedMode speed_
     return oss.str();
 }
 
-std::string PrintHelper::build_safety_procedure() const
+std::string PrintHelper::build_gamepad_safety_procedure() const
 {
+    std::ostringstream oss;
 
+    oss <<
+    "Enable gamepad: [BACK LEFT] + [BACK RIGHT] + (press) "
+    << Color::RED << "B" << Color::RESET;
+
+    return oss.str();
 }
 
 std::string PrintHelper::build_footer() const
 {
+    std::ostringstream oss;
 
+    oss <<
+    "\n---------------------------\n"
+    << Color::RED << "Ctrl+C to exit." << Color::RESET;
+
+    return oss.str();
 }
 
-};
+std::string PrintHelper::build_gamepad_joint_instructions() const
+{
+    std::ostringstream oss;
+
+    oss <<
+    "\nJOINT MOVEMENT:\n"
+    << "  J1: [LT] positive / [RT] negative\n"
+    << "  J2: [LB] positive / [RB] negative\n"
+    << "  J3: D-PAD [UP] positive / [DOWN] negative\n"
+    << "  J4: D-PAD [LEFT] positive / [RIGHT] negative\n"
+    << "  Hold [RIGHT MOUSE] to control J5/J6 instead:\n"
+    << "    J5: D-PAD [UP] positive / [DOWN] negative\n"
+    << "    J6: D-PAD [LEFT] positive / [RIGHT] negative\n";
+
+    return oss.str();
+}
+
+std::string PrintHelper::build_gamepad_twist_instructions() const
+{
+    std::ostringstream oss;
+
+    oss <<
+    "\nTWIST MOVEMENT:\n"
+    << "  Linear X/Y: LEFT STICK\n"
+    << "  Linear Z: [LT] positive / [RT] negative\n"
+    << "  Angular X/Y: RIGHT MOUSE\n"
+    << "  Angular Z: [LB] positive / [RB] negative\n"
+    << "  In STEP mode, press the stick/mouse button to apply one step.";
+
+    return oss.str();
+}
+
 
 } // namespace teleop2servo
