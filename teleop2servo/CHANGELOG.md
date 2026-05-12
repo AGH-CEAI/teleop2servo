@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+* [PR-05](https://github.com/AGH-CEAI/teleop2servo/pull/5) - Added gamepad control
 * [PR-01](https://github.com/AGH-CEAI/teleop2servo/pull/1) - Added joint conterol from the keyboard
 
 ### Changed
