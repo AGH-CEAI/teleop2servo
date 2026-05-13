@@ -24,7 +24,7 @@ namespace teleop2servo
 {
 
 enum class ControlMode {JOINT, BASE, TOOL};
-enum class SpeedMode {STEP, CONT_P5, CONT_P10, CONT_P25, CONT_P50};
+enum class SpeedMode {STEP, CONT_P5, CONT_P10, CONT_P25, CONT_P50, CONT_P75, CONT_P100};
 enum class ActiveCmdType { NONE, JOINT, TWIST };
 
 struct ActiveCmd
@@ -53,6 +53,8 @@ constexpr double get_speed_val(SpeedMode m)
     case SpeedMode::CONT_P10:  return 0.10;
     case SpeedMode::CONT_P25:  return 0.25;
     case SpeedMode::CONT_P50:  return 0.50;
+    case SpeedMode::CONT_P75:  return 0.75;
+    case SpeedMode::CONT_P100: return 1.0;
     default:                   return 0.0;
   }
 }
@@ -76,7 +78,9 @@ constexpr SpeedMode next(SpeedMode mode)
     case SpeedMode::CONT_P5:  return SpeedMode::CONT_P10;
     case SpeedMode::CONT_P10: return SpeedMode::CONT_P25;
     case SpeedMode::CONT_P25: return SpeedMode::CONT_P50;
-    case SpeedMode::CONT_P50: return SpeedMode::STEP;
+    case SpeedMode::CONT_P50: return SpeedMode::CONT_P75;
+    case SpeedMode::CONT_P75: return SpeedMode::CONT_P100;
+    case SpeedMode::CONT_P100: return SpeedMode::STEP;
     default:                  return SpeedMode::STEP;
   }
 }
@@ -99,6 +103,8 @@ constexpr std::string_view to_string(SpeedMode m)
     case SpeedMode::CONT_P10:  return "CONT 10%";
     case SpeedMode::CONT_P25:  return "CONT 25%";
     case SpeedMode::CONT_P50:  return "CONT 50%";
+    case SpeedMode::CONT_P75:  return "CONT 75%";
+    case SpeedMode::CONT_P100:  return "CONT 100%";
     default:                   return "UNKNOWN";
   }
 }
