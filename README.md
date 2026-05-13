@@ -22,5 +22,8 @@ ros2 launch teleop2servo gamepad_teleop.launch.py
 ```
 You can change the parameters of `GamepadTeleopNode` in `confiv/gamepad_config.yaml`.
 
+> [!NOTE]
+> he dependencies from `package.xml` can be installed via: `rosdep install --from-paths src --ignore-src -r -y`
+
 ## License
 Apache 2.0

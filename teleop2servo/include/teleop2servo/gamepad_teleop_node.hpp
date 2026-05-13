@@ -39,6 +39,7 @@ public:
     // ==== input processing ====
     bool button_pressed(const sensor_msgs::msg::Joy::SharedPtr & msg, Button button) const;
     bool rising_edge(const sensor_msgs::msg::Joy::SharedPtr & msg, Button button) const;
+    std::optional<Button> rising_edge(const sensor_msgs::msg::Joy::SharedPtr & msg) const;
     double axis_value(const sensor_msgs::msg::Joy::SharedPtr & msg, Axis axis) const;
 
     bool check_state_buttons(const sensor_msgs::msg::Joy::SharedPtr & msg);

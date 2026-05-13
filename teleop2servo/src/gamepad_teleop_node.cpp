@@ -5,6 +5,7 @@
 #include <mutex>
 #include <cmath>
 
+#include <magic_enum.hpp>
 #include <rclcpp/rclcpp.hpp>
 
 #include "teleop2servo/gamepad_teleop_node.hpp"
@@ -115,6 +116,17 @@ bool GamepadTeleopNode::rising_edge(
     return now_pressed && !was_pressed;
 }
 
+std::optional<Button> GamepadTeleopNode::rising_edge(const sensor_msgs::msg::Joy::SharedPtr & msg) const
+{
+    for (const auto button : magic_enum::enum_values<Button>()) {
+        if (rising_edge(msg, button)) {
+            return button;
+        }
+    }
+    return std::nullopt;
+}
+
+
 double GamepadTeleopNode::axis_value(
     const sensor_msgs::msg::Joy::SharedPtr & msg,
     Axis axis) const
@@ -200,17 +212,15 @@ bool GamepadTeleopNode::check_state_buttons(
     const sensor_msgs::msg::Joy::SharedPtr & msg
 )
 {
-    if (rising_edge(msg, Button::b)) {
-        block_gamepad();
-    } else if (rising_edge(msg, Button::x)) {
-        switch_control_mode();
-    } else if (rising_edge(msg, Button::y)) {
-        switch_speed_mode();
-    } else {
-        return false;
+    if(const auto button = rising_edge(msg)){
+        switch (*button) {
+            case Button::b : block_gamepad(); return true;
+            case Button::x : switch_control_mode(); return true;
+            case Button::y : switch_speed_mode(); return true;
+            default: return false;
+        }
     }
-
-    return true;
+    return false;
 }
 
 double GamepadTeleopNode::button_pair_direction(

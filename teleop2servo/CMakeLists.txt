@@ -9,6 +9,7 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(control_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
+find_package(magic_enum CONFIG REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclcpp_components REQUIRED)
 find_package(sensor_msgs REQUIRED)
@@ -29,6 +30,8 @@ ament_target_dependencies(
   sensor_msgs
   control_msgs
   geometry_msgs)
+
+target_link_libraries(gamepad_teleop_node magic_enum::magic_enum)
 
 rclcpp_components_register_nodes(gamepad_teleop_node "teleop2servo::GamepadTeleopNode")
 
