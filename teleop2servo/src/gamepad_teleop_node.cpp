@@ -255,18 +255,18 @@ std::pair<double, double> GamepadTeleopNode::axis_direction(
     SpeedMode speed_mode) const
 {
     auto apply_deadzone = [](double value) {
-        constexpr double deadzone = 0.05;
-        return std::abs(value) < deadzone ? 0.0 : value;
+        constexpr double DEADZONE = 0.05;
+        return std::abs(value) < DEADZONE ? 0.0 : value;
     };
 
     auto apply_axis_lock = [](double& x, double& y) {
-        constexpr double dominant = 0.8;
-        constexpr double secondary = 0.2;
+        constexpr double DOMINANT = 0.8;
+        constexpr double SEDONDARY = 0.2;
 
-        if (std::abs(x) >= dominant && std::abs(y) <= secondary) {
+        if (std::abs(x) >= DOMINANT && std::abs(y) <= SEDONDARY) {
             x = (x >= 0.0) ? 1.0 : -1.0;
             y = 0.0;
-        } else if (std::abs(y) >= dominant && std::abs(x) <= secondary) {
+        } else if (std::abs(y) >= DOMINANT && std::abs(x) <= SEDONDARY) {
             x = 0.0;
             y = (y >= 0.0) ? 1.0 : -1.0;
         }
@@ -371,7 +371,7 @@ void GamepadTeleopNode::create_cmd_twist(
     const double angular_z_dir =
         button_pair_direction(msg, Button::left_bumper, Button::right_bumper, speed_mode);
 
-    // prepare msg
+    // prepare msg ('*(-1.0)' to change directoin for more intuitive)
     cmd.twist_msg.twist.linear.x = linear_x_dir * scale_lin * (-1.0);
     cmd.twist_msg.twist.linear.y = linear_y_dir * scale_lin * (-1.0);
     cmd.twist_msg.twist.linear.z = linear_z_dir * scale_lin;
@@ -380,13 +380,14 @@ void GamepadTeleopNode::create_cmd_twist(
     cmd.twist_msg.twist.angular.y = angular_y_dir * scale_ang;
     cmd.twist_msg.twist.angular.z = angular_z_dir * scale_ang;
 
+    constexpr double EPS = 1e-7;
     const bool any_motion =
-        std::abs(cmd.twist_msg.twist.linear.x) > 1e-9 ||
-        std::abs(cmd.twist_msg.twist.linear.y) > 1e-9 ||
-        std::abs(cmd.twist_msg.twist.linear.z) > 1e-9 ||
-        std::abs(cmd.twist_msg.twist.angular.x) > 1e-9 ||
-        std::abs(cmd.twist_msg.twist.angular.y) > 1e-9 ||
-        std::abs(cmd.twist_msg.twist.angular.z) > 1e-9;
+        std::abs(cmd.twist_msg.twist.linear.x) > EPS ||
+        std::abs(cmd.twist_msg.twist.linear.y) > EPS ||
+        std::abs(cmd.twist_msg.twist.linear.z) > EPS ||
+        std::abs(cmd.twist_msg.twist.angular.x) > EPS ||
+        std::abs(cmd.twist_msg.twist.angular.y) > EPS ||
+        std::abs(cmd.twist_msg.twist.angular.z) > EPS;
 
     if (any_motion) {
         cmd.type = ActiveCmdType::TWIST;
