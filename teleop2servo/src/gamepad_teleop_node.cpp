@@ -127,9 +127,9 @@ double GamepadTeleopNode::axis_value(
 
 void GamepadTeleopNode::block_gamepad()
 {
-    stop_motion();
     {
         std::scoped_lock lock(state_mutex_);
+        stop_motion();
         state_.stop_button_pressed = true;
     }
     print_gamepad_layout_and_instructions();
@@ -137,16 +137,15 @@ void GamepadTeleopNode::block_gamepad()
 
 void GamepadTeleopNode::stop_motion()
 {
-    std::scoped_lock lock(state_mutex_);
     state_.active_cmd = ActiveCmd();
     state_.have_active_cmd = true; // once send zeros
 }
 
 void GamepadTeleopNode::switch_control_mode()
 {
-    stop_motion();
     {
         std::scoped_lock lock(state_mutex_);
+        stop_motion();
         state_.control_mode = next(state_.control_mode);
     }
     print_gamepad_layout_and_instructions();
@@ -154,9 +153,9 @@ void GamepadTeleopNode::switch_control_mode()
 
 void GamepadTeleopNode::switch_speed_mode()
 {
-    stop_motion();
     {
         std::scoped_lock lock(state_mutex_);
+        stop_motion();
         state_.speed_mode = next(state_.speed_mode);
     }
     print_gamepad_layout_and_instructions();
@@ -182,23 +181,18 @@ bool GamepadTeleopNode::joy_in_use(
 
 bool GamepadTeleopNode::check_safety_procedure(const sensor_msgs::msg::Joy::SharedPtr & msg)
 {
-    {
-        std::scoped_lock lock(state_mutex_);
-        if (!state_.stop_button_pressed) return true;
-    }
-
     const bool back_left = button_pressed(msg, Button::left_back_button);
     const bool back_right = button_pressed(msg, Button::right_back_button);
     const bool b_pressed = rising_edge(msg, Button::b);
     const bool enable_sequence = back_left && back_right && b_pressed;
-
-    if (enable_sequence) {
-        {
-            std::scoped_lock lock(state_mutex_);
-            state_.stop_button_pressed = false;
-        }
-        print_gamepad_layout_and_instructions();
+    {
+        std::scoped_lock lock(state_mutex_);
+        if (!state_.stop_button_pressed) return true;
+        if (enable_sequence) state_.stop_button_pressed = false;
     }
+
+    if (enable_sequence) print_gamepad_layout_and_instructions();
+
     return false;
 }
 
@@ -320,9 +314,7 @@ void GamepadTeleopNode::create_cmd_joint(
             break;
         }
     }
-    if (any_motion) {
-        cmd.type = ActiveCmdType::JOINT;
-    }
+    if (any_motion) cmd.type = ActiveCmdType::JOINT;
 }
 
 void GamepadTeleopNode::create_cmd_twist(
