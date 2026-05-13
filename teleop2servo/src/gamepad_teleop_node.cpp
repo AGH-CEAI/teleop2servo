@@ -193,8 +193,8 @@ bool GamepadTeleopNode::joy_in_use(
 
 bool GamepadTeleopNode::check_safety_procedure(const sensor_msgs::msg::Joy::SharedPtr & msg)
 {
-    const bool back_left = button_pressed(msg, Button::left_back_button);
-    const bool back_right = button_pressed(msg, Button::right_back_button);
+    const bool back_left = button_pressed(msg, Button::left_pad_left_click);
+    const bool back_right = button_pressed(msg, Button::left_pad_rigth_click);
     const bool b_pressed = rising_edge(msg, Button::b);
     const bool enable_sequence = back_left && back_right && b_pressed;
     {
@@ -297,7 +297,7 @@ void GamepadTeleopNode::create_cmd_joint(
         ? config_.joint_vel_step
         : config_.joint_vel_cont_max * get_speed_val(speed_mode);
 
-    const bool modifier = button_pressed(msg, Button::right_mouse_button);
+    const bool modifier = button_pressed(msg, Button::right_pad_click);
 
     auto set_joint = [this, &cmd, &msg, speed_mode, scale](std::size_t i, Button positive, Button negative) {
         if (i >= cmd.joint_velocities.size()) return;
@@ -306,15 +306,15 @@ void GamepadTeleopNode::create_cmd_joint(
         cmd.joint_velocities[i] = direction * scale;
     };
 
-    set_joint(0, Button::left_trigger_button, Button::right_trigger_button);
+    set_joint(0, Button::left_trigger_click, Button::right_trigger_click);
     set_joint(1, Button::left_bumper, Button::right_bumper);
 
     if (!modifier) {
-        set_joint(2, Button::left_mouse_top_button, Button::left_mouse_down_button); // j3
-        set_joint(3, Button::left_mouse_left_button, Button::left_mouse_right_button);    // j4
+        set_joint(2, Button::left_pad_top_click, Button::left_pad_down_click); // j3
+        set_joint(3, Button::left_pad_left_click, Button::left_pad_rigth_click);    // j4
     } else {
-        set_joint(4, Button::left_mouse_top_button, Button::left_mouse_down_button); // j5
-        set_joint(5, Button::left_mouse_left_button, Button::left_mouse_right_button);    // j6
+        set_joint(4, Button::left_pad_top_click, Button::left_pad_down_click); // j5
+        set_joint(5, Button::left_pad_left_click, Button::left_pad_rigth_click);    // j6
     }
 
     bool any_motion = false;
@@ -352,19 +352,19 @@ void GamepadTeleopNode::create_cmd_twist(
             msg,
             Axis::left_stick_x,
             Axis::left_stick_y,
-            Button::left_stick_button,
+            Button::left_stick_click,
             speed_mode
         );
 
     const double linear_z_dir =
-        button_pair_direction(msg, Button::left_trigger_button, Button::right_trigger_button, speed_mode);
+        button_pair_direction(msg, Button::left_trigger_click, Button::right_trigger_click, speed_mode);
 
     const auto [angular_y_dir, angular_x_dir] =
         axis_direction(
             msg,
-            Axis::right_mouse_x,
-            Axis::right_mouse_y,
-            Button::right_mouse_button,
+            Axis::right_pad_x,
+            Axis::right_pad_y,
+            Button::right_pad_click,
             speed_mode
         );
 
