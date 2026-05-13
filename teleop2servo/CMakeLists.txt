@@ -7,31 +7,43 @@ endif()
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
-find_package(rclcpp REQUIRED)
 find_package(control_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
+find_package(magic_enum CONFIG REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(rclcpp_components REQUIRED)
+find_package(sensor_msgs REQUIRED)
 find_package(std_msgs REQUIRED)
 
-add_executable(teleop_keyboard_node src/main.cpp src/teleop2servo_node.cpp src/keyboard_reader.cpp)
+add_library(gamepad_teleop_node SHARED src/gamepad_teleop_node.cpp src/print_helper.cpp)
+
+target_include_directories(
+  gamepad_teleop_node PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+                             $<INSTALL_INTERFACE:include>)
+
+target_compile_definitions(gamepad_teleop_node PRIVATE "RCLCPP_COMPONENTS_BUILDING_DLL")
 
 ament_target_dependencies(
-  teleop_keyboard_node
+  gamepad_teleop_node
   rclcpp
-  std_msgs
+  rclcpp_components
+  sensor_msgs
   control_msgs
   geometry_msgs)
 
-target_include_directories(
-  teleop_keyboard_node PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-                              $<INSTALL_INTERFACE:include>)
+target_link_libraries(gamepad_teleop_node magic_enum::magic_enum)
 
-# TESTING
-add_executable(tester_sub test/tester_sub.cpp)
-ament_target_dependencies(tester_sub rclcpp std_msgs)
+rclcpp_components_register_nodes(gamepad_teleop_node "teleop2servo::GamepadTeleopNode")
 
-install(TARGETS teleop_keyboard_node tester_sub DESTINATION lib/${PROJECT_NAME})
+install(
+  TARGETS gamepad_teleop_node
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION lib/${PROJECT_NAME})
+
 install(DIRECTORY config DESTINATION share/${PROJECT_NAME})
 install(DIRECTORY include/ DESTINATION include)
+install(DIRECTORY launch/ DESTINATION share/${PROJECT_NAME})
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)

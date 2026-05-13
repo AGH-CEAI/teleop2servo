@@ -3,14 +3,27 @@ ROS 2 teleoperation node for controlling a robot using MoveIt Servo with various
 
 ## What it does
 * Sends JointJog and TwistStamped commands from keyboard input
-* Supports joint and ~~Cartesian (base) control~~ (underconstruction)
+* Supports joint and cartesian (base frame and tool frame) control
 * Clean shutdown with Ctrl+C
 
 ## Run
+> [!IMPORTANT]
+> Make sure MoveIt Servo is running and the terminal window has focus.
+>
+> For more details, see: https://github.com/AGH-CEAI/aegis_ros/tree/humble-devel/aegis_moveit_config
+
+### For gamepad input
+> [!IMPORTANT]
+> Make sure the ROS 2 joy package is installed, e.g.:
+> `sudo apt install ros-$ROS_DISTRO-joy`
+
 ```bash
-ros2 run teleop2servo teleop_keyboard_node --ros-args --params-file "path to /teleop2servo/config/teleop_keyboard.yaml"
+ros2 launch teleop2servo gamepad_teleop.launch.py
 ```
-Make sure MoveIt Servo is running and the terminal window has focus.
+You can change the parameters of `GamepadTeleopNode` in `confiv/gamepad_config.yaml`.
+
+> [!NOTE]
+> he dependencies from `package.xml` can be installed via: `rosdep install --from-paths src --ignore-src -r -y`
 
 ## License
 Apache 2.0
