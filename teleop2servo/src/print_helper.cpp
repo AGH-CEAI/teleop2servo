@@ -82,11 +82,11 @@ std::string PrintHelper::build_gamepad_header(ControlMode control_mode, SpeedMod
     << Color::CYAN
     << "X"
     << Color::RESET
-    << ": Switch Mode\n"
+    << ": Switch Mode (JOINT/BASE/TOOL)\n"
     << Color::YELLOW
     << "Y"
     << Color::RESET
-    << ": Switch Speed"
+    << ": Switch Speed (STEP/CONT 5%-100%)"
     << "\n---------------------------\n";
 
     return oss.str();
