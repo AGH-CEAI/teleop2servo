@@ -2,7 +2,7 @@
 #define TELEOP2SERVO__GAMEPAD_CONFIG_HPP_
 
 namespace teleop2servo
-{
+{// TODO (issue#8): Configure key mapping from external yaml file
 
 enum class Axis : int
 {
