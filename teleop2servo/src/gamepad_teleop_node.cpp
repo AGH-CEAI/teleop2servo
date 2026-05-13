@@ -92,8 +92,8 @@ void GamepadTeleopNode::print_gamepad_layout_and_instructions()
         std::scoped_lock lock(state_mutex_);
         state = state_;
     }
-    std::string oss = PrintHelper::print_gamepad_layout_and_instructions(state.control_mode, state.speed_mode, state.stop_button_pressed);
-    RCLCPP_INFO(get_logger(), "%s", oss.c_str());
+    std::string str = PrintHelper::print_gamepad_layout_and_instructions(state.control_mode, state.speed_mode, state.stop_button_pressed);
+    RCLCPP_INFO(get_logger(), "%s", str.c_str());
 }
 
 bool GamepadTeleopNode::button_pressed(
@@ -102,7 +102,6 @@ bool GamepadTeleopNode::button_pressed(
 {
     const int index = static_cast<int>(button);
     return msg &&
-        index >= 0 &&
         static_cast<size_t>(index) < msg->buttons.size() &&
         msg->buttons[index] != 0;
 }
@@ -122,8 +121,8 @@ double GamepadTeleopNode::axis_value(
 {
     const int index = static_cast<int>(axis);
     if (!msg || index < 0 || static_cast<size_t>(index) >= msg->axes.size()) return 0.0;
-    const double value = static_cast<double>(msg->axes[index]);
-    return value;
+
+    return static_cast<double>(msg->axes[index]);
 }
 
 void GamepadTeleopNode::block_gamepad()
