@@ -193,8 +193,8 @@ bool GamepadTeleopNode::joy_in_use(
 
 bool GamepadTeleopNode::check_safety_procedure(const sensor_msgs::msg::Joy::SharedPtr & msg)
 {
-    const bool back_left = button_pressed(msg, Button::left_pad_left_click);
-    const bool back_right = button_pressed(msg, Button::left_pad_rigth_click);
+    const bool back_left = button_pressed(msg, Button::left_back_click);
+    const bool back_right = button_pressed(msg, Button::right_back_click);
     const bool b_pressed = rising_edge(msg, Button::b);
     const bool enable_sequence = back_left && back_right && b_pressed;
     {
