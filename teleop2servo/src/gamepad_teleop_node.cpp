@@ -310,10 +310,10 @@ void GamepadTeleopNode::create_cmd_joint(
     set_joint(1, Button::left_bumper, Button::right_bumper);
 
     if (!modifier) {
-        set_joint(2, Button::left_pad_top_click, Button::left_pad_down_click); // j3
+        set_joint(2, Button::left_pad_down_click, Button::left_pad_top_click); // j3
         set_joint(3, Button::left_pad_left_click, Button::left_pad_rigth_click);    // j4
     } else {
-        set_joint(4, Button::left_pad_top_click, Button::left_pad_down_click); // j5
+        set_joint(4, Button::left_pad_down_click, Button::left_pad_top_click); // j5
         set_joint(5, Button::left_pad_left_click, Button::left_pad_rigth_click);    // j6
     }
 
