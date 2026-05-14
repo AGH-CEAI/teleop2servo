@@ -12,18 +12,18 @@ ROS 2 teleoperation node for controlling a robot using MoveIt Servo with various
 >
 > For more details, see: https://github.com/AGH-CEAI/aegis_ros/tree/humble-devel/aegis_moveit_config
 
+> [!NOTE]
+> Install dependencies: 
+> `rosdep install --from-paths src --ignore-src -r -y`
+
 ### For gamepad input
-> [!IMPORTANT]
-> Make sure the ROS 2 joy package is installed, e.g.:
-> `sudo apt install ros-$ROS_DISTRO-joy`
+> [!NOTE]
+> Make sure the ROS 2 joy package is installed.
 
 ```bash
 ros2 launch teleop2servo gamepad_teleop.launch.py
 ```
-You can change the parameters of `GamepadTeleopNode` in `confiv/gamepad_config.yaml`.
-
-> [!NOTE]
-> he dependencies from `package.xml` can be installed via: `rosdep install --from-paths src --ignore-src -r -y`
+You can configure `GamepadTeleopNode` parameters in `config/gamepad_config.yaml`.
 
 ## License
 Apache 2.0
