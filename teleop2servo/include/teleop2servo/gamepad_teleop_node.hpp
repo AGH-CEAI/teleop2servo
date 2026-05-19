@@ -24,7 +24,7 @@ public:
 
     private:
     // ==== init ====
-    void load_parameters();
+    void load_teleop_parameters();
     void setup_subscribers();
     void setup_publishers();
     void setup_timers();

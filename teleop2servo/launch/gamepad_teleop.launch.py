@@ -23,6 +23,7 @@ def generate_launch_description():
                 package="joy",
                 plugin="joy::Joy",
                 name="joy_node",
+                # condition=IfCondition(cfg["launch_rviz"]),
             ),
             ComposableNode(
                 package="teleop2servo",
