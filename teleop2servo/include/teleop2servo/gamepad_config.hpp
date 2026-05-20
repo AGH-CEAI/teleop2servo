@@ -10,16 +10,16 @@ enum class Axis : int
     left_stick_y = 1,
     right_pad_x = 2,
     right_pad_y = 3,
-    left_mouse_x = 4,
-    left_mouse_y = 5,
+    left_pad_x = 4,
+    left_pad_y = 5,
     left_trigger = 6,
     right_trigger = 7
 };
 
 enum class Button : int
 {
-    left_mouse_touch = 0,
-    right_mouse_touch = 1,
+    left_pad_touch = 0,
+    right_pad_touch = 1,
     a = 2,
     b = 3,
     x = 4,
@@ -39,6 +39,43 @@ enum class Button : int
     left_pad_down_click = 18,
     left_pad_left_click = 19,
     left_pad_rigth_click = 20,
+};
+
+struct GamepadMapping
+{
+    static constexpr Button block_device = Button::b;
+    static constexpr Button switch_control_mode = Button::x;
+    static constexpr Button switch_speed_mode = Button::y;
+
+    static constexpr Axis x_axis = Axis::left_stick_x;
+    static constexpr Axis y_axis = Axis::left_stick_y;
+
+    static constexpr Button z_positive = Button::right_trigger_click;
+    static constexpr Button z_negative = Button::left_trigger_click;
+
+    static constexpr Axis roll_axis = Axis::right_pad_x;
+    static constexpr Axis pitch_axis = Axis::right_pad_y;
+
+    static constexpr Button yaw_positive = Button::right_bumper;
+    static constexpr Button yaw_negative = Button::left_bumper;
+
+    static constexpr Button joint_1_positive = Button::right_trigger_click;
+    static constexpr Button joint_1_negative = Button::left_trigger_click;
+
+    static constexpr Button joint_2_positive = Button::right_bumper;
+    static constexpr Button joint_2_negative = Button::left_bumper;
+
+    static constexpr Button joint_3_positive = Button::left_pad_down_click;
+    static constexpr Button joint_3_negative = Button::left_pad_top_click;
+
+    static constexpr Button joint_4_positive = Button::left_pad_left_click;
+    static constexpr Button joint_4_negative = Button::left_pad_rigth_click;
+
+    static constexpr Button joint_5_positive = Button::left_pad_down_click;
+    static constexpr Button joint_5_negative = Button::left_pad_top_click;
+
+    static constexpr Button joint_6_positive = Button::left_pad_left_click;
+    static constexpr Button joint_6_negative = Button::left_pad_rigth_click;
 };
 
 } // namespace teleop2servo
