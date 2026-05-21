@@ -22,7 +22,7 @@ public:
     TeleopGamepadNode(const rclcpp::NodeOptions& options);
     ~TeleopGamepadNode() override;
 
-    private:
+private:
     // ==== init ====
     void load_gamepad_parameters();
     void setup_subscribers();

@@ -5,7 +5,6 @@
 #include <mutex>
 #include <cmath>
 
-#include <magic_enum.hpp>
 #include <rclcpp/rclcpp.hpp>
 
 #include "teleop2servo/teleop_publisher.hpp"

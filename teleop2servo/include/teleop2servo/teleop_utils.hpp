@@ -38,7 +38,6 @@ struct ActiveCmd
   ActiveCmdType type{ActiveCmdType::NONE};
   std::vector<double> joint_velocities;
   geometry_msgs::msg::TwistStamped twist_msg;
-  std::string frame_id{"base_link"};
 };
 
 struct TeleopState
