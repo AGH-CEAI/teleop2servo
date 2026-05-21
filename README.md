@@ -14,7 +14,7 @@ ROS 2 teleoperation node for controlling a robot using MoveIt Servo with various
 ### For keyboard input:
 
 ```bash
-ros2 run teleop2servo keyboard_teleop_node
+ros2 run teleop2servo teleop_node
 ```
 With special params:
 ```bash
