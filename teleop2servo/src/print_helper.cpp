@@ -47,7 +47,6 @@ std::string PrintHelper::build_gamepad_instructions(ControlMode control_mode, Sp
 
     oss << build_footer();
 
-
     return oss.str();
 }
 

@@ -11,7 +11,7 @@ struct TeleopConfig
 {
     double servo_publish_hz = 250.0;
     int servo_ticks_per_policy_step = 10;
-
+  
     std::string twist_topic = "/servo_node/delta_twist_cmds";
     std::string joint_topic = "/servo_node/delta_joint_cmds";
 

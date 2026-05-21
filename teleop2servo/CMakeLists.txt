@@ -9,11 +9,11 @@ find_package(ament_cmake REQUIRED)
 find_package(control_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(magic_enum REQUIRED)
+find_package(magic_enum CONFIG REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclcpp_components REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(std_msgs REQUIRED)
-
 add_library(teleop_gamepad_node SHARED src/teleop_gamepad_node.cpp src/teleop_publisher.cpp
                                        src/print_helper.cpp)
 
