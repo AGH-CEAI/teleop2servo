@@ -1,5 +1,5 @@
-#ifndef TELEOP2SERVO__GAMEPAD_CONFIG_HPP_
-#define TELEOP2SERVO__GAMEPAD_CONFIG_HPP_
+#ifndef TELEOP2SERVO__TELEOP_DEVICE_MAPPING_HPP_
+#define TELEOP2SERVO__TELEOP_DEVICE_MAPPING_HPP_
 
 namespace teleop2servo
 {// TODO (issue#8): Configure key mapping from external yaml file
@@ -38,7 +38,7 @@ enum class Button : int
     left_pad_top_click = 17,
     left_pad_down_click = 18,
     left_pad_left_click = 19,
-    left_pad_rigth_click = 20,
+    left_pad_right_click = 20,
 };
 
 struct GamepadMapping
@@ -59,6 +59,11 @@ struct GamepadMapping
     static constexpr Button yaw_positive = Button::right_bumper;
     static constexpr Button yaw_negative = Button::left_bumper;
 
+    static constexpr Button linear_step_button = Button::left_stick_click;
+    static constexpr Button angular_step_button = Button::right_pad_click;
+
+    static constexpr Button joint_modifier = Button::right_pad_click;
+
     static constexpr Button joint_1_positive = Button::right_trigger_click;
     static constexpr Button joint_1_negative = Button::left_trigger_click;
 
@@ -69,15 +74,18 @@ struct GamepadMapping
     static constexpr Button joint_3_negative = Button::left_pad_top_click;
 
     static constexpr Button joint_4_positive = Button::left_pad_left_click;
-    static constexpr Button joint_4_negative = Button::left_pad_rigth_click;
+    static constexpr Button joint_4_negative = Button::left_pad_right_click;
 
     static constexpr Button joint_5_positive = Button::left_pad_down_click;
     static constexpr Button joint_5_negative = Button::left_pad_top_click;
 
     static constexpr Button joint_6_positive = Button::left_pad_left_click;
-    static constexpr Button joint_6_negative = Button::left_pad_rigth_click;
+    static constexpr Button joint_6_negative = Button::left_pad_right_click;
+
+    static constexpr Button safety_left = Button::left_pad_left_click;
+    static constexpr Button safety_right = Button::left_pad_right_click;
 };
 
 } // namespace teleop2servo
 
-#endif  // TELEOP2SERVO__GAMEPAD_CONFIG_HPP_
+#endif  // TELEOP2SERVO__TELEOP_DEVICE_MAPPING_HPP_

@@ -27,8 +27,8 @@ def generate_launch_description():
             ),
             ComposableNode(
                 package="teleop2servo",
-                plugin="teleop2servo::GamepadTeleopNode",
-                name="gamepad_teleop_node",
+                plugin="teleop2servo::TeleopGamepadNode",
+                name="teleop_gamepad_node",
                 parameters=[config_file],
             ),
         ],

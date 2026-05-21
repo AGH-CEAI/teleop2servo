@@ -23,6 +23,12 @@ struct Color
 namespace teleop2servo
 {
 
+enum class TeleopDevice
+{
+    GAMEPAD,
+    // KEYBOARD TODO
+};
+
 enum class ControlMode {JOINT, BASE, TOOL};
 enum class SpeedMode {STEP, CONT_P5, CONT_P10, CONT_P25, CONT_P50, CONT_P75, CONT_P100};
 enum class ActiveCmdType { NONE, JOINT, TWIST };

@@ -5,12 +5,11 @@
 #include <string>
 
 #include <rclcpp/rclcpp.hpp>
-#include <sensor_msgs/msg/joy.hpp>
+
 #include <geometry_msgs/msg/twist_stamped.hpp>
 #include <control_msgs/msg/joint_jog.hpp>
 #include "teleop2servo/teleop_config.hpp"
 #include "teleop2servo/teleop_utils.hpp"
-#include "teleop2servo/gamepad_config.hpp"
 #include "teleop2servo/print_helper.hpp"
 
 namespace teleop2servo
@@ -19,47 +18,44 @@ namespace teleop2servo
 class TeleopPublisher
 {
 public:
-    TeleopPublisher(rclcpp::Node & node);
-    ~TeleopPublisher() override;
+    explicit TeleopPublisher(rclcpp::Node & node, TeleopDevice teleop_device);
+    ~TeleopPublisher();
 
-    TeleopState get_teleop_state();
-    void set_teleop_state(TeleopState state);
+    ControlMode get_control_mode() const;
+    SpeedMode get_speed_mode() const;
+    bool get_stop_button_pressed() const;
+    const TeleopConfig & get_config() const;
+
+    void set_active_cmd(const ActiveCmd & cmd);
+    void switch_control_mode();
+    void switch_speed_mode();
+    void block_teleop_device();
+    void unblock_teleop_device();
 
 private:
-    // ==== init ====
-    void load_teleop_parameters();
+    template<typename T>
+    void load_param(const std::string& name, T& value);
+    void load_parameters();
     void setup_publishers();
     void setup_timers();
 
-    template<typename T>
-    void load_param(const std::string& name, T& value);
-
-
-    // ==== callbacks / main loops ====
     void publish_loop();
 
-    // ==== mode/state changes ====
-    void switch_control_mode();
-    void switch_speed_mode();
-    void stop_motion();
-
-    // ==== publishing ====
+    void stop_motion();  // call only with state_mutex_
     void publish_stop_once(const rclcpp::Time & now);
     void publish_joint(const rclcpp::Time & now, const ActiveCmd & cmd);
     void publish_twist(const rclcpp::Time & now, const ActiveCmd & cmd);
 
-    // ==== logging ====
     void print_instructions();
 
-
 private:
+    rclcpp::Node& node_;
+    TeleopDevice teleop_device_;
     TeleopConfig config_;
     TeleopState state_;
 
-    // protect state_
-    std::mutex state_mutex_;
+    mutable std::mutex state_mutex_;
 
-    // ==== ROS entities ====
     rclcpp::Publisher<geometry_msgs::msg::TwistStamped>::SharedPtr twist_pub_;
     rclcpp::Publisher<control_msgs::msg::JointJog>::SharedPtr joint_pub_;
     rclcpp::TimerBase::SharedPtr pub_timer_;
