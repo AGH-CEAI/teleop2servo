@@ -26,7 +26,8 @@ namespace teleop2servo
 enum class TeleopDevice
 {
     GAMEPAD,
-    // KEYBOARD TODO
+    // TODO(PR#4) (re)introduce the keyboard support
+    // KEYBOARD
 };
 
 enum class ControlMode {JOINT, BASE, TOOL};

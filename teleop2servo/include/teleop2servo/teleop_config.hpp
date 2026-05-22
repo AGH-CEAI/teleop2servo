@@ -40,7 +40,8 @@ struct TeleopConfig
 
 struct GamepadConfig
 {
-        std::string joy_topic = "/joy";
+    std::string joy_topic = "/joy";
+    constexpr double EPS = 1e-7;
 };
 
 struct KeyboardConfig

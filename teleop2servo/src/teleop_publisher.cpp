@@ -172,48 +172,6 @@ void TeleopPublisher::print_instructions()
     RCLCPP_INFO(node_.get_logger(), "%s", str.c_str());
 }
 
-void TeleopPublisher::publish_stop_once(const rclcpp::Time & now)
-{
-    auto joint_msg = control_msgs::msg::JointJog();
-    joint_msg.header.stamp = now;
-    joint_msg.header.frame_id = config_.base_frame_id;
-    for (const auto & name : config_.joint_names){
-        joint_msg.joint_names.push_back(name);
-        joint_msg.velocities.push_back(0.0);
-    }
-
-    joint_pub_->publish(joint_msg);
-
-    auto twist_msg = geometry_msgs::msg::TwistStamped();
-    twist_msg.header.stamp = now;
-    twist_msg.header.frame_id = config_.base_frame_id;
-
-    twist_pub_->publish(twist_msg);
-}
-
-void TeleopPublisher::publish_joint(
-    const rclcpp::Time & now,
-    const ActiveCmd & cmd)
-{
-    auto joint_msg = control_msgs::msg::JointJog();
-    joint_msg.header.stamp = now;
-    joint_msg.header.frame_id = config_.base_frame_id;
-
-    joint_msg.joint_names = config_.joint_names;
-    joint_msg.velocities = cmd.joint_velocities;
-
-    joint_pub_->publish(joint_msg);
-}
-
-void TeleopPublisher::publish_twist(
-    const rclcpp::Time & now,
-    const ActiveCmd & cmd)
-{
-    auto twist_msg = cmd.twist_msg;
-    twist_msg.header.stamp = now;
-
-    twist_pub_->publish(twist_msg);
-}
 
 void TeleopPublisher::publish_loop()
 {
@@ -256,5 +214,47 @@ void TeleopPublisher::publish_loop()
     }
 }
 
+void TeleopPublisher::publish_stop_once(const rclcpp::Time & now)
+{
+    auto joint_msg = control_msgs::msg::JointJog();
+    joint_msg.header.stamp = now;
+    joint_msg.header.frame_id = config_.base_frame_id;
+    for (const auto & name : config_.joint_names){
+        joint_msg.joint_names.push_back(name);
+        joint_msg.velocities.push_back(0.0);
+    }
+
+    joint_pub_->publish(joint_msg);
+
+    auto twist_msg = geometry_msgs::msg::TwistStamped();
+    twist_msg.header.stamp = now;
+    twist_msg.header.frame_id = config_.base_frame_id;
+
+    twist_pub_->publish(twist_msg);
+}
+
+void TeleopPublisher::publish_joint(
+    const rclcpp::Time & now,
+    const ActiveCmd & cmd)
+{
+    auto joint_msg = control_msgs::msg::JointJog();
+    joint_msg.header.stamp = now;
+    joint_msg.header.frame_id = config_.base_frame_id;
+
+    joint_msg.joint_names = config_.joint_names;
+    joint_msg.velocities = cmd.joint_velocities;
+
+    joint_pub_->publish(joint_msg);
+}
+
+void TeleopPublisher::publish_twist(
+    const rclcpp::Time & now,
+    const ActiveCmd & cmd)
+{
+    auto twist_msg = cmd.twist_msg;
+    twist_msg.header.stamp = now;
+
+    twist_pub_->publish(twist_msg);
+}
 
 } // namespace teleop2servo

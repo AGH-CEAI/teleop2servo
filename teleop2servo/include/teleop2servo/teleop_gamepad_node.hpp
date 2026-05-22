@@ -24,11 +24,10 @@ public:
 
 private:
     // ==== init ====
-    void load_gamepad_parameters();
-    void setup_subscribers();
-
     template<typename T>
     void load_param(const std::string& name, T& value);
+    void load_gamepad_parameters();
+    void setup_subscribers();
 
     // ==== callbacks / main loops ====
     void joy_callback(const sensor_msgs::msg::Joy::SharedPtr msg);

@@ -23,6 +23,7 @@ def generate_launch_description():
                 package="joy",
                 plugin="joy::Joy",
                 name="joy_node",
+                # TODO(PR#4) Construct whole launch file logic for Keyboard/Gamepad selection
                 # condition=IfCondition(cfg["launch_rviz"]),
             ),
             ComposableNode(

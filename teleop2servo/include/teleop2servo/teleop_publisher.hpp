@@ -41,7 +41,7 @@ private:
 
     void publish_loop();
 
-    void stop_motion();  // call only with state_mutex_
+    void stop_motion_locked();  // call only with state_mutex_
     void publish_stop_once(const rclcpp::Time & now);
     void publish_joint(const rclcpp::Time & now, const ActiveCmd & cmd);
     void publish_twist(const rclcpp::Time & now, const ActiveCmd & cmd);
