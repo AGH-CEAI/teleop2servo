@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+* [PR-10](https://github.com/AGH-CEAI/teleop2servo/pull/10) - Refactored the code architecture
 * [PR-09](https://github.com/AGH-CEAI/teleop2servo/pull/9) - Small changes to gamepad key mapping
 
 ### Deprecated
