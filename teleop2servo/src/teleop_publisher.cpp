@@ -114,7 +114,7 @@ void TeleopPublisher::set_active_cmd(const ActiveCmd & cmd)
     state_.active_cmd = cmd;
 }
 
-void TeleopPublisher::stop_motion()
+void TeleopPublisher::stop_motion_locked()
 {
     state_.active_cmd = ActiveCmd();
     state_.have_active_cmd = true; // once send zeros
@@ -125,7 +125,7 @@ void TeleopPublisher::switch_control_mode()
 {
     {
         std::lock_guard<std::mutex> lock(state_mutex_);
-        stop_motion();
+        stop_motion_locked();
         state_.control_mode = next(state_.control_mode);
     }
     print_instructions();
@@ -135,7 +135,7 @@ void TeleopPublisher::switch_speed_mode()
 {
     {
         std::lock_guard<std::mutex> lock(state_mutex_);
-        stop_motion();
+        stop_motion_locked();
         state_.speed_mode = next(state_.speed_mode);
     }
     print_instructions();
@@ -145,7 +145,7 @@ void TeleopPublisher::block_teleop_device()
 {
     {
         std::lock_guard<std::mutex> lock(state_mutex_);
-        stop_motion();
+        stop_motion_locked();
         state_.stop_button_pressed = true;
     }
     print_instructions();
@@ -155,7 +155,7 @@ void TeleopPublisher::unblock_teleop_device()
 {
     {
         std::lock_guard<std::mutex> lock(state_mutex_);
-        stop_motion();
+        stop_motion_locked();
         state_.stop_button_pressed = false;
     }
     print_instructions();
