@@ -21,7 +21,7 @@ ROS 2 teleoperation node for controlling a robot using MoveIt Servo with various
 > Make sure the ROS 2 joy package is installed.
 
 ```bash
-ros2 launch teleop2servo gamepad_teleop.launch.py
+ros2 launch teleop2servo teleop.launch.py
 ```
 You can configure `GamepadTeleopNode` parameters in `config/gamepad_config.yaml`.
 

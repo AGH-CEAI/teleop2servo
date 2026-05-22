@@ -7,7 +7,31 @@
 namespace teleop2servo
 {
 
-std::string PrintHelper::print_gamepad_layout_and_instructions(ControlMode control_mode, SpeedMode speed_mode, bool stop_gamepad)
+std::string PrintHelper::build_teleop_msg_layout_and_instructions(
+        TeleopDevice teleop_device,
+        ControlMode control_mode,
+        SpeedMode speed_mode,
+        bool device_blocked
+    )
+{
+    std::ostringstream oss;
+    switch (teleop_device)
+    {
+        case TeleopDevice::GAMEPAD:
+            oss << build_gamepad_instructions(control_mode, speed_mode, device_blocked);
+            break;
+        default:
+            oss
+                <<Color::BOLD
+                <<"\n\nERROR: TeleopDevice with this name not found...\n"
+                << Color::RESET;
+            break;
+    }
+
+    return oss.str();
+}
+
+std::string PrintHelper::build_gamepad_instructions(ControlMode control_mode, SpeedMode speed_mode, bool stop_gamepad)
 {
     std::ostringstream oss;
 
