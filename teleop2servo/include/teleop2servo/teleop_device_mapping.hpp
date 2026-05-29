@@ -4,6 +4,7 @@
 namespace teleop2servo
 {// TODO (issue#8): Configure key mapping from external yaml file
 
+
 enum class Axis : int
 {
     left_stick_x = 0,
@@ -88,7 +89,7 @@ struct GamepadMapping
 
 struct KeyboardMapping
 {
-    static constexpr char block_device = ' ';
+    TeleopAction::block_device = ' ';
     static constexpr char switch_control_mode = ' ';
     static constexpr char switch_speed_mode = ' ';
 
@@ -129,6 +130,43 @@ struct KeyboardMapping
 
     static constexpr char safety_left = ' ';
     static constexpr char safety_right = ' ';
+};
+
+enum class TeleopAction
+{
+    block_device,
+    switch_control_mode,
+    switch_speed_mode,
+
+    x_axis,
+    y_axis,
+    z_positive,
+    z_negative,
+
+    roll_axis,
+    pitch_axis,
+    yaw_positive,
+    yaw_negative,
+
+    linear_step,
+    angular_step,
+    joint_modifier,
+
+    joint_1_positive,
+    joint_1_negative,
+    joint_2_positive,
+    joint_2_negative,
+    joint_3_positive,
+    joint_3_negative,
+    joint_4_positive,
+    joint_4_negative,
+    joint_5_positive,
+    joint_5_negative,
+    joint_6_positive,
+    joint_6_negative,
+
+    safety_left,
+    safety_right
 };
 
 } // namespace teleop2servo
