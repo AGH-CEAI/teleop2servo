@@ -89,85 +89,41 @@ struct GamepadMapping
 
 struct KeyboardMapping
 {
-    TeleopAction::block_device = ' ';
-    static constexpr char switch_control_mode = ' ';
-    static constexpr char switch_speed_mode = ' ';
+    static constexpr char block_device = ' ';
+    static constexpr char switch_control_mode = '\t';
+    static constexpr char switch_speed_mode = 'S';
 
-    static constexpr char x_axis = ' ';
-    static constexpr char y_axis = ' ';
+    static constexpr char x_positive = 's';
+    static constexpr char x_negative = 'w';
+    static constexpr char y_positive = 'd';
+    static constexpr char y_negative = 'a';
 
-    static constexpr char z_positive = ' ';
-    static constexpr char z_negative = ' ';
+    static constexpr char z_positive = 'q';
+    static constexpr char z_negative = 'e';
 
-    static constexpr char roll_axis = ' ';
-    static constexpr char pitch_axis = ' ';
+    static constexpr char rotation_switch = 'r';
 
-    static constexpr char yaw_positive = ' ';
-    static constexpr char yaw_negative = ' ';
+    static constexpr char joint_1_positive = '1';
+    static constexpr char joint_1_negative = 'q';
 
-    static constexpr char linear_step_button = ' ';
-    static constexpr char angular_step_button = ' ';
+    static constexpr char joint_2_positive = '2';
+    static constexpr char joint_2_negative = 'w';
 
-    static constexpr char joint_modifier = ' ';
+    static constexpr char joint_3_positive = '3';
+    static constexpr char joint_3_negative = 'e';
 
-    static constexpr char joint_1_positive = ' ';
-    static constexpr char joint_1_negative = ' ';
+    static constexpr char joint_4_positive = '4';
+    static constexpr char joint_4_negative = 'r';
 
-    static constexpr char joint_2_positive = ' ';
-    static constexpr char joint_2_negative = ' ';
+    static constexpr char joint_5_positive = '5';
+    static constexpr char joint_5_negative = 't';
 
-    static constexpr char joint_3_positive = ' ';
-    static constexpr char joint_3_negative = ' ';
+    static constexpr char joint_6_positive = '6';
+    static constexpr char joint_6_negative = 'y';
 
-    static constexpr char joint_4_positive = ' ';
-    static constexpr char joint_4_negative = ' ';
-
-    static constexpr char joint_5_positive = ' ';
-    static constexpr char joint_5_negative = ' ';
-
-    static constexpr char joint_6_positive = ' ';
-    static constexpr char joint_6_negative = ' ';
-
-    static constexpr char safety_left = ' ';
-    static constexpr char safety_right = ' ';
+    static constexpr char safety_button = 'l';
 };
 
-enum class TeleopAction
-{
-    block_device,
-    switch_control_mode,
-    switch_speed_mode,
-
-    x_axis,
-    y_axis,
-    z_positive,
-    z_negative,
-
-    roll_axis,
-    pitch_axis,
-    yaw_positive,
-    yaw_negative,
-
-    linear_step,
-    angular_step,
-    joint_modifier,
-
-    joint_1_positive,
-    joint_1_negative,
-    joint_2_positive,
-    joint_2_negative,
-    joint_3_positive,
-    joint_3_negative,
-    joint_4_positive,
-    joint_4_negative,
-    joint_5_positive,
-    joint_5_negative,
-    joint_6_positive,
-    joint_6_negative,
-
-    safety_left,
-    safety_right
-};
 
 } // namespace teleop2servo
 

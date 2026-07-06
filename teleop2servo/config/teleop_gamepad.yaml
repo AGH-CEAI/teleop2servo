@@ -1,9 +1,11 @@
-keyboard_teleop:
+gamepad_teleop_node:
   ros__parameters:
-    publish_hz: 250
-    servo_ticks_per_policy_step: 25
+    servo_publish_hz: 250.0
+    servo_ticks_per_policy_step: 10
 
-    # serwo topics
+    joy_topic: "/joy"
+
+    # servo topics
     twist_topic: "/servo_node/delta_twist_cmds"
     joint_topic: "/servo_node/delta_joint_cmds"
     queue_size: 10

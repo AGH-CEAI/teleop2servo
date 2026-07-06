@@ -15,6 +15,9 @@ std::string PrintHelper::build_teleop_msg_layout_and_instructions(TeleopDevice t
     case TeleopDevice::GAMEPAD:
       oss << build_gamepad_instructions(control_mode, speed_mode, device_blocked);
       break;
+    case TeleopDevice::KEYBOARD:
+      oss << build_keyboard_instructions(control_mode, speed_mode, device_blocked);
+      break;
     default:
       oss << Color::BOLD << "\n\nERROR: TeleopDevice with this name not found...\n" << Color::RESET;
       break;
@@ -117,6 +120,40 @@ std::string PrintHelper::build_gamepad_twist_instructions() {
       << "  Angular X/Y: RIGHT MOUSE\n"
       << "  Angular Z: [LB] positive / [RB] negative\n"
       << "In STEP mode, press the stick/mouse button to apply one step.";
+
+  return oss.str();
+}
+
+std::string PrintHelper::build_keyboard_instructions(ControlMode control_mode, SpeedMode speed_mode, bool device_blocked) {
+  std::ostringstream oss;
+
+  oss << build_keyboard_header(control_mode, speed_mode, device_blocked);
+
+  // if (stop_gamepad == true) {
+  //   oss << build_gamepad_safety_procedure();
+  // } else if (control_mode == ControlMode::JOINT) {
+  //   oss << build_gamepad_joint_instructions();
+  // } else {
+  //   oss << build_gamepad_twist_instructions();
+  // }
+
+  oss << build_footer();
+
+  return oss.str();
+}
+
+std::string PrintHelper::build_keyboard_header(ControlMode control_mode, SpeedMode speed_mode, bool device_blocked) {
+  std::ostringstream oss;
+
+    oss << Color::BOLD << "\n\n================ TELEOP KEYBOARD =================\n"
+      << "Status: " << (device_blocked ? Color::RED : Color::RESET) << (device_blocked ? "BLOCKED" : "Keyboard ready")
+      << Color::RESET << "\n---------------------------\n"
+      << "Mode: " << Color::CYAN << to_string(control_mode) << Color::RESET << " | Speed: " << Color::YELLOW
+      << to_string(speed_mode) << Color::RESET << "\n---------------------------\n"
+      << Color::RED << "SHIFT + l" << Color::RESET << ": Block keyboard\n"
+      << Color::CYAN << "TAB" << Color::RESET << ": Switch Mode (JOINT/BASE/TOOL)\n"
+      << Color::YELLOW << "SHIFT + s" << Color::RESET << ": Switch Speed (STEP/CONT 5%-100%)"
+      << "\n---------------------------\n";
 
   return oss.str();
 }

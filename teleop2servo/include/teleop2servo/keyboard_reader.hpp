@@ -22,6 +22,7 @@ public:
 private:
   termios orig_{};
   std::atomic<bool> running_{false};
+  int fd_{-1};
 };
 
 } //namespace teleop2servo
