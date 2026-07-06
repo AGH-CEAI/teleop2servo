@@ -89,7 +89,7 @@ struct GamepadMapping
 
 struct KeyboardMapping
 {
-    static constexpr char block_device = ' ';
+    static constexpr char block_device = 'L';
     static constexpr char switch_control_mode = '\t';
     static constexpr char switch_speed_mode = 'S';
 
@@ -101,7 +101,13 @@ struct KeyboardMapping
     static constexpr char z_positive = 'q';
     static constexpr char z_negative = 'e';
 
-    static constexpr char rotation_switch = 'r';
+    static constexpr char roll_positive = 'u';
+    static constexpr char roll_negative = 'j';
+    static constexpr char pitch_positive = 'h';
+    static constexpr char pitch_negative = 'k';
+
+    static constexpr char yaw_positive = 'y';
+    static constexpr char yaw_negative = 'i';
 
     static constexpr char joint_1_positive = '1';
     static constexpr char joint_1_negative = 'q';
@@ -120,8 +126,6 @@ struct KeyboardMapping
 
     static constexpr char joint_6_positive = '6';
     static constexpr char joint_6_negative = 'y';
-
-    static constexpr char safety_button = 'l';
 };
 
 

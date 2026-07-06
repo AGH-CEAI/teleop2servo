@@ -3,6 +3,8 @@ keyboard_teleop:
     servo_publish_hz: 250.0
     servo_ticks_per_policy_step: 25
 
+    reading_keyboard_hz: 250.0
+
     # serwo topics
     twist_topic: "/servo_node/delta_twist_cmds"
     joint_topic: "/servo_node/delta_joint_cmds"

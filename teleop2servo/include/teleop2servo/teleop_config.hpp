@@ -41,6 +41,7 @@ struct GamepadConfig
 
 struct KeyboardConfig
 {
+        double reading_keyboard_hz = 250.0;
 };
 
 } // namespace teleop2servo

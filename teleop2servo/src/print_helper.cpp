@@ -147,9 +147,11 @@ std::string PrintHelper::build_keyboard_header(ControlMode control_mode, SpeedMo
 
     oss << Color::BOLD << "\n\n================ TELEOP KEYBOARD =================\n"
       << "Status: " << (device_blocked ? Color::RED : Color::RESET) << (device_blocked ? "BLOCKED" : "Keyboard ready")
-      << Color::RESET << "\n---------------------------\n"
+      << Color::RESET
+      << "\n---------------------------\n"
       << "Mode: " << Color::CYAN << to_string(control_mode) << Color::RESET << " | Speed: " << Color::YELLOW
-      << to_string(speed_mode) << Color::RESET << "\n---------------------------\n"
+      << to_string(speed_mode) << Color::RESET
+      << "\n---------------------------\n"
       << Color::RED << "SHIFT + l" << Color::RESET << ": Block keyboard\n"
       << Color::CYAN << "TAB" << Color::RESET << ": Switch Mode (JOINT/BASE/TOOL)\n"
       << Color::YELLOW << "SHIFT + s" << Color::RESET << ": Switch Speed (STEP/CONT 5%-100%)"

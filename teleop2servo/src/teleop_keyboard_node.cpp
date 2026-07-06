@@ -29,16 +29,55 @@ namespace teleop2servo
 TeleopKeyboardNode::TeleopKeyboardNode()
 : Node(
     "keyboard_teleop",
-    rclcpp::NodeOptions().automatically_declare_parameters_from_overrides(true))
+    rclcpp::NodeOptions().automatically_declare_parameters_from_overrides(true)),
+    teleop_publisher_(*this, TeleopDevice::KEYBOARD)
 {
+  load_keyboard_parameters();
+  setup_timers();
   keyboard_.start();
-
-  std::cout << "START KEYBOARD hahahaha :)))" << std::endl;
+  last_input_time_ = this->now();
 }
 
 TeleopKeyboardNode::~TeleopKeyboardNode()
 {
   keyboard_.stop();
+}
+
+template <typename T>
+void TeleopKeyboardNode::load_param(const std::string& name, T& value) {
+  this->declare_parameter<T>(name, value);
+  this->get_parameter(name, value);
+}
+
+void TeleopKeyboardNode::load_keyboard_parameters() {
+  load_param("reading_keyboard_hz", keyboard_config_.reading_keyboard_hz);
+}
+
+void TeleopKeyboardNode::setup_timers()
+{
+  key_timer_ = this->create_wall_timer(
+    10ms, std::bind(&TeleopKeyboardNode::handle_key_input, this)
+  );
+}
+
+void TeleopKeyboardNode::handle_key_input() {
+  char c;
+  while (keyboard_.read_key(c)) {
+    last_input_time_ = this->now();
+
+    if (teleop_publisher_.get_stop_button_pressed() && c != KeyboardMapping::block_device){
+      break;
+    }
+
+    switch (c) {
+      case KeyboardMapping::block_device: teleop_publisher_.unblock_teleop_device(); continue;
+      case KeyboardMapping::switch_control_mode: teleop_publisher_.switch_control_mode(); continue;
+      case KeyboardMapping::switch_speed_mode: teleop_publisher_.switch_speed_mode(); continue;
+      default: break;
+    }
+
+    // TODO: CONTINUE
+  }
 }
 
 } // namespace teleop2servo
