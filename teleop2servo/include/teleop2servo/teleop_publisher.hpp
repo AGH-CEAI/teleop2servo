@@ -24,6 +24,7 @@ class TeleopPublisher {
   bool get_stop_button_pressed() const;
   const TeleopConfig& get_config() const;
 
+  void stop_motion();
   void set_active_cmd(const ActiveCmd& cmd);
   void switch_control_mode();
   void switch_speed_mode();

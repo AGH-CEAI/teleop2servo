@@ -106,6 +106,11 @@ void TeleopPublisher::stop_motion_locked() {
   state_.remaining_step_ticks = 0;
 }
 
+void TeleopPublisher::stop_motion() {
+  std::lock_guard<std::mutex> lock(state_mutex_);
+  stop_motion_locked();
+}
+
 void TeleopPublisher::switch_control_mode() {
   {
     std::lock_guard<std::mutex> lock(state_mutex_);
