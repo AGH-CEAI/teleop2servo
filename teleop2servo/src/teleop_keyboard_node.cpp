@@ -227,10 +227,12 @@ void TeleopKeyboardNode::handle_key_input() {
   ActiveCmd cmd = ActiveCmd();
 
   if (!keyboard_.read_key(c)) {
+    std::cout << ">>> CMD is ZIOBRO!" << std::endl;
     teleop_publisher_.set_active_cmd(cmd);  // stop
     last_active_char_.reset();
     return;
   }
+  std::cout << ">>> CMD will be NON zero!" << std::endl;
 
   if (!check_safety_procedure(c))
     return;
