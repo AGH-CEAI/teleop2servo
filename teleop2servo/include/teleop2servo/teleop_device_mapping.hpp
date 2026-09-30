@@ -83,8 +83,8 @@ struct GamepadMapping
     static constexpr Button joint_6_positive = Button::left_pad_left_click;
     static constexpr Button joint_6_negative = Button::left_pad_right_click;
 
-    static constexpr Button safety_left = Button::left_pad_left_click;
-    static constexpr Button safety_right = Button::left_pad_right_click;
+    static constexpr Button safety_left = Button::left_back_click;
+    static constexpr Button safety_right = Button::right_back_click;
 };
 
 struct KeyboardMapping

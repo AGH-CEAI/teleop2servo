@@ -6,6 +6,19 @@ ROS 2 teleoperation node for controlling a robot using MoveIt Servo with various
 * Supports joint and cartesian (base frame and tool frame) control
 * Clean shutdown with Ctrl+C
 
+## Installation
+Clone the package into your workspace, install its dependencies (declared in `package.xml`) with `rosdep`, then build it:
+
+```bash
+cd ~/ceai_ws/src
+git clone https://github.com/AGH-CEAI/teleop2servo.git
+cd ~/ceai_ws
+sudo apt update
+rosdep update
+rosdep install --from-paths src/teleop2servo --ignore-src -y
+colcon build --symlink-install --packages-select teleop2servo
+```
+
 ## Run
 > ⚠️ **IMPORTANT:**
 > Make sure MoveIt Servo is running and the terminal window has focus.
@@ -14,11 +27,17 @@ ROS 2 teleoperation node for controlling a robot using MoveIt Servo with various
 ### For keyboard input:
 
 ```bash
-ros2 run teleop2servo keyboard_teleop_node
+ros2 launch teleop2servo teleop.launch.py teleop_device:=keyboard
 ```
-With special params:
+or directly:
 ```bash
-ros2 run teleop2servo keyboard_teleop_node --ros-args --params-file "path to /teleop2servo/config/teleop2servo.yaml"
+ros2 run teleop2servo teleop_keyboard_node --ros-args --params-file "path to /teleop2servo/config/teleop_keyboard.yaml"
+```
+
+### For gamepad input:
+
+```bash
+ros2 launch teleop2servo teleop.launch.py teleop_device:=gamepad
 ```
 
 ## License

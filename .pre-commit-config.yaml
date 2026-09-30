@@ -35,7 +35,7 @@ repos:
         args: [-w]
 
 -   repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.15.22
+    rev: v0.16.9
     hooks:
     -   id: ruff
         args:
@@ -50,7 +50,7 @@ repos:
     -   id: cmake-lint
 
 -   repo: https://github.com/tier4/pre-commit-hooks-ros
-    rev: v0.10.2
+    rev: v0.10.3
     hooks:
     -   id: prettier-xacro
     -   id: prettier-package-xml

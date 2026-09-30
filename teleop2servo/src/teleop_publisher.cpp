@@ -88,13 +88,19 @@ const TeleopConfig& TeleopPublisher::get_config() const {
 void TeleopPublisher::set_active_cmd(const ActiveCmd& cmd) {
   std::lock_guard<std::mutex> lock(state_mutex_);
 
-  if (cmd.type != ActiveCmdType::NONE) {
-    state_.have_active_cmd = true;
-    if (state_.speed_mode == SpeedMode::STEP) {
-      state_.remaining_step_ticks = config_.servo_ticks_per_policy_step;
-    } else {
-      state_.remaining_step_ticks = 0;
-    }
+  if (cmd.type == ActiveCmdType::NONE) {
+    if (state_.remaining_step_ticks > 0)
+      return;
+
+    state_.active_cmd = cmd;
+    return;
+  }
+
+  state_.have_active_cmd = true;
+  if (state_.speed_mode == SpeedMode::STEP) {
+    state_.remaining_step_ticks = config_.servo_ticks_per_policy_step;
+  } else {
+    state_.remaining_step_ticks = 0;
   }
 
   state_.active_cmd = cmd;

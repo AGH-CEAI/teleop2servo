@@ -1,9 +1,11 @@
-keyboard_teleop:
+keyboard_teleop_node:
   ros__parameters:
     servo_publish_hz: 250.0
     servo_ticks_per_policy_step: 25
 
     reading_keyboard_hz: 250.0
+    key_initial_timeout_s: 0.55   # must be > system autorepeat delay
+    key_repeat_timeout_s: 0.1     # must be > system autorepeat interval
 
     # serwo topics
     twist_topic: "/servo_node/delta_twist_cmds"

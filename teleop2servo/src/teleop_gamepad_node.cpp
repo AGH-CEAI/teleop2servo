@@ -84,7 +84,7 @@ bool TeleopGamepadNode::check_safety_procedure(const sensor_msgs::msg::Joy::Shar
   const bool back_left = button_pressed(msg, GamepadMapping::safety_left);
   const bool back_right = button_pressed(msg, GamepadMapping::safety_right);
   const bool b_pressed = rising_edge(msg, GamepadMapping::block_device);
-  const bool enable_sequence = back_left && back_right && b_pressed;
+  const bool enable_sequence = (back_left || back_right) && b_pressed;
 
   if (!teleop_publisher_.get_stop_button_pressed())
     return true;

@@ -16,6 +16,7 @@ struct Color {
   static constexpr const char* BLUE = "\033[34m";
   static constexpr const char* CYAN = "\033[36m";
   static constexpr const char* BOLD = "\033[1m";
+  static constexpr const char* DIM = "\033[2m";
 };
 
 namespace teleop2servo {

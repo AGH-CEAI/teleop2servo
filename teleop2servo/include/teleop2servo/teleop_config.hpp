@@ -42,6 +42,8 @@ struct GamepadConfig
 struct KeyboardConfig
 {
         double reading_keyboard_hz = 250.0;
+        double key_initial_timeout_s = 0.55;
+        double key_repeat_timeout_s = 0.1;
 };
 
 } // namespace teleop2servo
