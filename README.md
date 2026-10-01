@@ -1,14 +1,18 @@
 # teleop2servo
 
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit)](https://github.com/pre-commit/pre-commit)
+[![prek](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/j178/prek/master/docs/assets/badge-v0.json)](https://github.com/j178/prek)
+
 ![teleop2servo](docs/banner.svg)
 
-Teleoperate a robot arm through [MoveIt Servo](https://moveit.picknik.ai/humble/doc/examples/realtime_servo/realtime_servo_tutorial.html) with a **keyboard** or a **gamepad**.
+ROS 2 teleoperation node for controlling a robot using MoveIt Servo with various input devices.
 
 `teleop2servo` turns user input into `control_msgs/JointJog` (joint control) and `geometry_msgs/TwistStamped` (Cartesian control) commands for MoveIt Servo. It can optionally switch the `ros2_control` controllers and start Servo for you when you begin teleoperation, and restore them when you finish.
 
 ## Features
 
-- **Two input devices:** a terminal keyboard (no extra drivers) and a gamepad (via the [`joy`](https://index.ros.org/p/joy/) package).
+- **Two input devices:** a terminal keyboard (no extra drivers) and a gamepad (via the [`joy`](https://index.ros.org/p/joy/) package). Ready to extend and add different input devices.
 - **Three control modes:** `JOINT` (single joints), `BASE` (Cartesian, base frame) and `TOOL` (Cartesian, end-effector frame).
 - **Speed modes:** `STEP` (one fixed step per press) and continuous `CONT` at 5 / 10 / 25 / 50 / 75 / 100 % of the configured maximum.
 - **Safe by default:** the device starts **blocked** and has to be unblocked explicitly; blocking it again stops the motion immediately.
