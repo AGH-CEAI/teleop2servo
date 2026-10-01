@@ -9,8 +9,7 @@
 
 namespace teleop2servo {
 
-ServoActivator::ServoActivator(rclcpp::Node& node, const ServoActivationConfig& config)
-    : node_(node), config_(config) {
+ServoActivator::ServoActivator(rclcpp::Node& node, const ServoActivationConfig& config) : node_(node), config_(config) {
   callback_group_ = node_.create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive, false);
   executor_.add_callback_group(callback_group_, node_.get_node_base_interface());
 

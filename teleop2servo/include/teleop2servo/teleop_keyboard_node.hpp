@@ -13,16 +13,14 @@
 #include "teleop2servo/teleop_publisher.hpp"
 #include "teleop2servo/teleop_utils.hpp"
 
-namespace teleop2servo
-{
+namespace teleop2servo {
 
-class TeleopKeyboardNode : public rclcpp::Node
-{
-public:
+class TeleopKeyboardNode : public rclcpp::Node {
+ public:
   explicit TeleopKeyboardNode(const rclcpp::NodeOptions& options = rclcpp::NodeOptions());
   ~TeleopKeyboardNode() override;
 
-private:
+ private:
   using SteadyClock = std::chrono::steady_clock;
 
   // ==== init ====
@@ -46,7 +44,7 @@ private:
   void create_cmd_joint(char c, const SpeedMode speed_mode, ActiveCmd& cmd) const;
   void create_cmd_twist(char c, const ControlMode control_mode, const SpeedMode speed_mode, ActiveCmd& cmd) const;
 
-private:
+ private:
   KeyboardConfig keyboard_config_;
   KeyboardReader keyboard_;
   TeleopPublisher teleop_publisher_;
@@ -58,6 +56,6 @@ private:
   SteadyClock::time_point last_key_time_;
 };
 
-} //namespace teleop2servo
+}  // namespace teleop2servo
 
 #endif  // TELEOP2SERVO__TELEOP_KEYBOARD_NODE_HPP_

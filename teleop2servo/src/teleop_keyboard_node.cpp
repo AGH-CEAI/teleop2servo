@@ -11,45 +11,38 @@
 
 #include "teleop2servo/teleop_keyboard_node.hpp"
 
-namespace teleop2servo
-{
+namespace teleop2servo {
 
 TeleopKeyboardNode::TeleopKeyboardNode(const rclcpp::NodeOptions& options)
-    : Node("keyboard_teleop_node", options), teleop_publisher_(*this, TeleopDevice::KEYBOARD)
-{
+    : Node("keyboard_teleop_node", options), teleop_publisher_(*this, TeleopDevice::KEYBOARD) {
   load_keyboard_parameters();
   keyboard_.start();
   setup_timers();
 }
 
-TeleopKeyboardNode::~TeleopKeyboardNode()
-{
+TeleopKeyboardNode::~TeleopKeyboardNode() {
   keyboard_.stop();
 }
 
 template <typename T>
-void TeleopKeyboardNode::load_param(const std::string& name, T& value)
-{
+void TeleopKeyboardNode::load_param(const std::string& name, T& value) {
   this->declare_parameter<T>(name, value);
   this->get_parameter(name, value);
 }
 
-void TeleopKeyboardNode::load_keyboard_parameters()
-{
+void TeleopKeyboardNode::load_keyboard_parameters() {
   load_param("reading_keyboard_hz", keyboard_config_.reading_keyboard_hz);
   load_param("key_initial_timeout_s", keyboard_config_.key_initial_timeout_s);
   load_param("key_repeat_timeout_s", keyboard_config_.key_repeat_timeout_s);
 }
 
-void TeleopKeyboardNode::setup_timers()
-{
+void TeleopKeyboardNode::setup_timers() {
   const double hz = std::max(1.0, keyboard_config_.reading_keyboard_hz);
   key_timer_ = this->create_wall_timer(std::chrono::duration<double>(1.0 / hz),
                                        std::bind(&TeleopKeyboardNode::handle_key_input, this));
 }
 
-std::optional<char> TeleopKeyboardNode::read_last_key()
-{
+std::optional<char> TeleopKeyboardNode::read_last_key() {
   std::optional<char> last;
   char c;
   while (keyboard_.read_key(c)) {
@@ -58,8 +51,7 @@ std::optional<char> TeleopKeyboardNode::read_last_key()
   return last;
 }
 
-void TeleopKeyboardNode::handle_key_input()
-{
+void TeleopKeyboardNode::handle_key_input() {
   const auto now = SteadyClock::now();
   const double since_last_key = std::chrono::duration<double>(now - last_key_time_).count();
 
@@ -101,8 +93,7 @@ void TeleopKeyboardNode::handle_key_input()
   }
 }
 
-void TeleopKeyboardNode::process_key(char c, bool new_press, bool autorepeat)
-{
+void TeleopKeyboardNode::process_key(char c, bool new_press, bool autorepeat) {
   if (!check_safety_procedure(c, new_press))
     return;
 
@@ -127,13 +118,11 @@ void TeleopKeyboardNode::process_key(char c, bool new_press, bool autorepeat)
   teleop_publisher_.set_active_cmd(cmd);
 }
 
-void TeleopKeyboardNode::on_key_release()
-{
+void TeleopKeyboardNode::on_key_release() {
   teleop_publisher_.set_active_cmd(ActiveCmd());
 }
 
-bool TeleopKeyboardNode::check_safety_procedure(char c, bool new_press)
-{
+bool TeleopKeyboardNode::check_safety_procedure(char c, bool new_press) {
   if (!teleop_publisher_.is_device_blocked())
     return true;
 
@@ -143,8 +132,7 @@ bool TeleopKeyboardNode::check_safety_procedure(char c, bool new_press)
   return false;
 }
 
-bool TeleopKeyboardNode::check_state_buttons(char c, bool new_press)
-{
+bool TeleopKeyboardNode::check_state_buttons(char c, bool new_press) {
   switch (c) {
     case KeyboardMapping::block_device:
       if (new_press)
@@ -166,8 +154,7 @@ bool TeleopKeyboardNode::check_state_buttons(char c, bool new_press)
   }
 }
 
-void TeleopKeyboardNode::create_cmd_joint(char c, const SpeedMode speed_mode, ActiveCmd& cmd) const
-{
+void TeleopKeyboardNode::create_cmd_joint(char c, const SpeedMode speed_mode, ActiveCmd& cmd) const {
   const auto& config = teleop_publisher_.get_config();
 
   const double scale =
@@ -197,8 +184,7 @@ void TeleopKeyboardNode::create_cmd_joint(char c, const SpeedMode speed_mode, Ac
 void TeleopKeyboardNode::create_cmd_twist(char c,
                                           const ControlMode control_mode,
                                           const SpeedMode speed_mode,
-                                          ActiveCmd& cmd) const
-{
+                                          ActiveCmd& cmd) const {
   const auto& config = teleop_publisher_.get_config();
 
   cmd.twist_msg.header.frame_id = (control_mode == ControlMode::BASE) ? config.base_frame_id : config.ee_frame_id;
@@ -236,8 +222,7 @@ void TeleopKeyboardNode::create_cmd_twist(char c,
 
 }  // namespace teleop2servo
 
-int main(int argc, char** argv)
-{
+int main(int argc, char** argv) {
   rclcpp::init(argc, argv);
   auto node = std::make_shared<teleop2servo::TeleopKeyboardNode>();
   rclcpp::spin(node);
