@@ -5,6 +5,7 @@
 [![prek](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/j178/prek/master/docs/assets/badge-v0.json)](https://github.com/j178/prek)
 
 ![teleop2servo](docs/banner.svg)
+![Gamepad and keyboard](docs/devices.svg)
 
 ROS 2 teleoperation node for controlling a robot using MoveIt Servo with various input devices.
 
