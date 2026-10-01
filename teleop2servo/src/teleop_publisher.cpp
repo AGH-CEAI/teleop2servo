@@ -106,9 +106,9 @@ SpeedMode TeleopPublisher::get_speed_mode() const {
   return state_.speed_mode;
 }
 
-bool TeleopPublisher::get_stop_button_pressed() const {
+bool TeleopPublisher::is_device_blocked() const {
   std::lock_guard<std::mutex> lock(state_mutex_);
-  return state_.stop_button_pressed;
+  return state_.device_blocked;
 }
 
 const TeleopConfig& TeleopPublisher::get_config() const {
@@ -169,7 +169,7 @@ void TeleopPublisher::block_teleop_device() {
   {
     std::lock_guard<std::mutex> lock(state_mutex_);
     stop_motion_locked();
-    state_.stop_button_pressed = true;
+    state_.device_blocked = true;
   }
 
   if (servo_activator_)
@@ -188,14 +188,14 @@ void TeleopPublisher::unblock_teleop_device() {
   {
     std::lock_guard<std::mutex> lock(state_mutex_);
     stop_motion_locked();
-    state_.stop_button_pressed = false;
+    state_.device_blocked = false;
   }
   print_instructions();
 }
 
 void TeleopPublisher::print_instructions() {
   std::string str = PrintHelper::build_teleop_msg_layout_and_instructions(teleop_device_, get_control_mode(),
-                                                                          get_speed_mode(), get_stop_button_pressed());
+                                                                          get_speed_mode(), is_device_blocked());
   RCLCPP_INFO(node_.get_logger(), "%s", str.c_str());
 }
 

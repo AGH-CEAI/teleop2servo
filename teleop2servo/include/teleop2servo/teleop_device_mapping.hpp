@@ -2,8 +2,8 @@
 #define TELEOP2SERVO__TELEOP_DEVICE_MAPPING_HPP_
 
 namespace teleop2servo
-{// TODO (issue#8): Configure key mapping from external yaml file
-
+{
+// TODO (issue#8): Configure key mapping from external yaml file
 
 enum class Axis : int
 {

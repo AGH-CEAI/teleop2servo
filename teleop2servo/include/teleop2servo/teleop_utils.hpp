@@ -24,7 +24,6 @@ namespace teleop2servo {
 enum class TeleopDevice {
   GAMEPAD,
   KEYBOARD,
-  // TODO(PR#4) (re)introduce the keyboard support
 };
 
 enum class ControlMode { JOINT, BASE, TOOL };
@@ -43,7 +42,7 @@ struct TeleopState {
   ActiveCmd active_cmd;
   int remaining_step_ticks = 0;
   bool have_active_cmd{false};
-  bool stop_button_pressed{true};
+  bool device_blocked{true};
 };
 
 constexpr double get_speed_val(SpeedMode m) {

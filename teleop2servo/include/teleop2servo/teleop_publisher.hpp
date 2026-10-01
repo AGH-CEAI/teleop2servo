@@ -23,7 +23,7 @@ class TeleopPublisher {
 
   ControlMode get_control_mode() const;
   SpeedMode get_speed_mode() const;
-  bool get_stop_button_pressed() const;
+  bool is_device_blocked() const;
   const TeleopConfig& get_config() const;
 
   void stop_motion();

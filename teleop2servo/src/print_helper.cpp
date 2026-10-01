@@ -31,9 +31,8 @@ std::string PrintHelper::build_teleop_msg_layout_and_instructions(TeleopDevice t
 }
 
 std::string PrintHelper::build_status(ControlMode control_mode, SpeedMode speed_mode, bool device_blocked) {
-  static constexpr std::size_t BOX_INNER_WIDTH = 70;  // + 2 frame chars = banner width
+  static constexpr std::size_t BOX_INNER_WIDTH = 70;
 
-  // Color codes take no space on screen, so padding is computed from the plain text.
   std::string plain;
   std::string colored;
   auto add = [&plain, &colored](const std::string& text, const char* color = nullptr) {
@@ -101,7 +100,7 @@ std::string PrintHelper::build_gamepad_instructions(ControlMode control_mode, bo
 
   oss << build_gamepad_header();
 
-  if (device_blocked == true) {
+  if (device_blocked) {
     oss << build_gamepad_safety_procedure();
   } else if (control_mode == ControlMode::JOINT) {
     oss << build_gamepad_joint_instructions();
@@ -187,7 +186,7 @@ std::string PrintHelper::build_keyboard_instructions(ControlMode control_mode, b
 
   oss << build_keyboard_header();
 
-  if (device_blocked == true) {
+  if (device_blocked) {
     oss << build_keyboard_safety_procedure();
   } else if (control_mode == ControlMode::JOINT) {
     oss << build_keyboard_joint_instructions();

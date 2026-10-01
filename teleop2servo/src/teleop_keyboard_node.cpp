@@ -134,7 +134,7 @@ void TeleopKeyboardNode::on_key_release()
 
 bool TeleopKeyboardNode::check_safety_procedure(char c, bool new_press)
 {
-  if (!teleop_publisher_.get_stop_button_pressed())
+  if (!teleop_publisher_.is_device_blocked())
     return true;
 
   if (new_press && c == KeyboardMapping::block_device)
