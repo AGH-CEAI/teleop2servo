@@ -16,15 +16,21 @@ namespace teleop2servo {
 
 TeleopPublisher::TeleopPublisher(rclcpp::Node& node, TeleopDevice teleop_device)
     : node_(node), teleop_device_(teleop_device) {
-  // TODO (issue#6) Change the controller for servo in constructor, after stopping change it back.
   load_parameters();
   setup_publishers();
   setup_timers();
+  setup_servo_activation();
 
   print_instructions();
 }
 
-TeleopPublisher::~TeleopPublisher() = default;
+TeleopPublisher::~TeleopPublisher() {
+  const auto context = node_.get_node_base_interface()->get_context();
+  context->remove_pre_shutdown_callback(pre_shutdown_handle_);
+
+  if (rclcpp::ok(context))
+    on_shutdown();
+}
 
 template <typename T>
 void TeleopPublisher::load_param(const std::string& name, T& value) {
@@ -53,6 +59,15 @@ void TeleopPublisher::load_parameters() {
 
   load_param("twist_ang_step", config_.twist_ang_step);
   load_param("twist_ang_cont_max", config_.twist_ang_cont_max);
+
+  auto& servo = config_.servo_activation;
+  load_param("servo_activation.enabled", servo.enabled);
+  load_param("servo_activation.service_timeout_s", servo.service_timeout_s);
+  load_param("servo_activation.switch_controller_service", servo.switch_controller_service);
+  load_param("servo_activation.activate_controllers", servo.activate_controllers);
+  load_param("servo_activation.deactivate_controllers", servo.deactivate_controllers);
+  load_param("servo_activation.start_servo_service", servo.start_servo_service);
+  load_param("servo_activation.stop_servo_service", servo.stop_servo_service);
 }
 
 void TeleopPublisher::setup_publishers() {
@@ -64,6 +79,21 @@ void TeleopPublisher::setup_timers() {
   const int hz = std::max(1.0, config_.servo_publish_hz);
   pub_timer_ =
       node_.create_wall_timer(std::chrono::milliseconds(1000 / hz), std::bind(&TeleopPublisher::publish_loop, this));
+}
+
+void TeleopPublisher::setup_servo_activation() {
+  if (config_.servo_activation.enabled)
+    servo_activator_ = std::make_unique<ServoActivator>(node_, config_.servo_activation);
+
+  pre_shutdown_handle_ =
+      node_.get_node_base_interface()->get_context()->add_pre_shutdown_callback([this]() { on_shutdown(); });
+}
+
+void TeleopPublisher::on_shutdown() {
+  stop_motion();
+
+  if (servo_activator_)
+    servo_activator_->deactivate();
 }
 
 ControlMode TeleopPublisher::get_control_mode() const {
@@ -141,10 +171,20 @@ void TeleopPublisher::block_teleop_device() {
     stop_motion_locked();
     state_.stop_button_pressed = true;
   }
+
+  if (servo_activator_)
+    servo_activator_->deactivate();
+
   print_instructions();
 }
 
 void TeleopPublisher::unblock_teleop_device() {
+  if (servo_activator_ && !servo_activator_->activate()) {
+    RCLCPP_ERROR(node_.get_logger(), "MoveIt Servo activation failed, device stays blocked.");
+    print_instructions();
+    return;
+  }
+
   {
     std::lock_guard<std::mutex> lock(state_mutex_);
     stop_motion_locked();

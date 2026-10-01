@@ -1,6 +1,7 @@
 #ifndef TELEOP2SERVO__TELEOP_PUBLISHER_HPP_
 #define TELEOP2SERVO__TELEOP_PUBLISHER_HPP_
 
+#include <memory>
 #include <mutex>
 #include <string>
 
@@ -8,6 +9,7 @@
 
 #include <geometry_msgs/msg/twist_stamped.hpp>
 #include <control_msgs/msg/joint_jog.hpp>
+#include "teleop2servo/servo_activator.hpp"
 #include "teleop2servo/teleop_config.hpp"
 #include "teleop2servo/teleop_utils.hpp"
 #include "teleop2servo/print_helper.hpp"
@@ -37,6 +39,9 @@ class TeleopPublisher {
   void load_parameters();
   void setup_publishers();
   void setup_timers();
+  void setup_servo_activation();
+
+  void on_shutdown();
 
   void publish_loop();
 
@@ -58,6 +63,9 @@ class TeleopPublisher {
   rclcpp::Publisher<geometry_msgs::msg::TwistStamped>::SharedPtr twist_pub_;
   rclcpp::Publisher<control_msgs::msg::JointJog>::SharedPtr joint_pub_;
   rclcpp::TimerBase::SharedPtr pub_timer_;
+
+  std::unique_ptr<ServoActivator> servo_activator_;
+  rclcpp::PreShutdownCallbackHandle pre_shutdown_handle_;
 };
 
 }  // namespace teleop2servo

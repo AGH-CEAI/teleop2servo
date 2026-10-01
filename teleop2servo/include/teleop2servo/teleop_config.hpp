@@ -7,6 +7,19 @@
 namespace teleop2servo
 {
 
+struct ServoActivationConfig
+{
+    bool enabled = false;
+    double service_timeout_s = 2.0;
+
+    std::string switch_controller_service = "/controller_manager/switch_controller";
+    std::vector<std::string> activate_controllers = {"forward_position_controller"};
+    std::vector<std::string> deactivate_controllers = {"scaled_joint_trajectory_controller"};
+
+    std::string start_servo_service = "/servo_node/start_servo";
+    std::string stop_servo_service = "/servo_node/stop_servo";
+};
+
 struct TeleopConfig
 {
     double servo_publish_hz = 250.0;
@@ -31,6 +44,8 @@ struct TeleopConfig
 
         double twist_ang_step = 0.1;
         double twist_ang_cont_max = 0.8;
+
+        ServoActivationConfig servo_activation;
 };
 
 struct GamepadConfig

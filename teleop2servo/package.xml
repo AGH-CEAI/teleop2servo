@@ -16,12 +16,14 @@
   <buildtool_depend>ament_cmake</buildtool_depend>
 
   <depend>control_msgs</depend>
+  <depend>controller_manager_msgs</depend>
   <depend>geometry_msgs</depend>
   <depend>magic_enum</depend>
   <depend>rclcpp</depend>
   <depend>rclcpp_components</depend>
   <depend>sensor_msgs</depend>
   <depend>std_msgs</depend>
+  <depend>std_srvs</depend>
   <exec_depend>ament_index_python</exec_depend>
   <exec_depend>joy</exec_depend>
   <exec_depend>launch</exec_depend>
