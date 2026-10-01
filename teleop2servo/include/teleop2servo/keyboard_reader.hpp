@@ -5,26 +5,24 @@
 
 #include <termios.h>
 
-namespace teleop2servo
-{
+namespace teleop2servo {
 
-class KeyboardReader
-{
-public:
+class KeyboardReader {
+ public:
   KeyboardReader() = default;
   ~KeyboardReader();
 
   void start();
   void stop();
 
-  bool read_key(char &c);
+  bool read_key(char& c);
 
-private:
+ private:
   termios orig_{};
   std::atomic<bool> running_{false};
   int fd_{-1};
 };
 
-} //namespace teleop2servo
+}  // namespace teleop2servo
 
 #endif  // TELEOP2SERVO__KEYBOARD_READER_HPP_

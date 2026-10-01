@@ -142,6 +142,18 @@ Velocity values are normalized commands, scaled by Servo's `scale.*` parameters.
 - Only one key is handled at a time.
 - If motion stutters while a key is held, check your key-repeat settings (on GNOME: `gsettings get org.gnome.desktop.peripherals.keyboard delay` and `repeat-interval`) and adjust the timeouts.
 
+## Development notes
+
+This project uses various tools for aiding the quality of the source code. Currently most of them are executed by the `pre-commit`. As a faster alternative it is suggested to use `prek`. Please make sure to enable its hooks:
+
+```bash
+# In case of pre-commit
+pre-commit install
+# In case of prek
+prek install
+```
+
+---
 ## License
 
 [Apache 2.0](LICENSE)

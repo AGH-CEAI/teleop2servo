@@ -1,134 +1,128 @@
 #ifndef TELEOP2SERVO__TELEOP_DEVICE_MAPPING_HPP_
 #define TELEOP2SERVO__TELEOP_DEVICE_MAPPING_HPP_
 
-namespace teleop2servo
-{
+namespace teleop2servo {
 // TODO (issue#8): Configure key mapping from external yaml file
 
-enum class Axis : int
-{
-    left_stick_x = 0,
-    left_stick_y = 1,
-    right_pad_x = 2,
-    right_pad_y = 3,
-    left_pad_x = 4,
-    left_pad_y = 5,
-    left_trigger = 6,
-    right_trigger = 7
+enum class Axis : int {
+  left_stick_x = 0,
+  left_stick_y = 1,
+  right_pad_x = 2,
+  right_pad_y = 3,
+  left_pad_x = 4,
+  left_pad_y = 5,
+  left_trigger = 6,
+  right_trigger = 7
 };
 
-enum class Button : int
-{
-    left_pad_touch = 0,
-    right_pad_touch = 1,
-    a = 2,
-    b = 3,
-    x = 4,
-    y = 5,
-    left_bumper = 6,
-    right_bumper = 7,
-    left_trigger_click = 8,
-    right_trigger_click = 9,
-    left_arrow = 10,
-    right_arrow = 11,
-    power_on_off = 12,
-    left_stick_click = 13,
-    right_pad_click = 14,
-    left_back_click = 15,
-    right_back_click = 16,
-    left_pad_top_click = 17,
-    left_pad_down_click = 18,
-    left_pad_left_click = 19,
-    left_pad_right_click = 20,
+enum class Button : int {
+  left_pad_touch = 0,
+  right_pad_touch = 1,
+  a = 2,
+  b = 3,
+  x = 4,
+  y = 5,
+  left_bumper = 6,
+  right_bumper = 7,
+  left_trigger_click = 8,
+  right_trigger_click = 9,
+  left_arrow = 10,
+  right_arrow = 11,
+  power_on_off = 12,
+  left_stick_click = 13,
+  right_pad_click = 14,
+  left_back_click = 15,
+  right_back_click = 16,
+  left_pad_top_click = 17,
+  left_pad_down_click = 18,
+  left_pad_left_click = 19,
+  left_pad_right_click = 20,
 };
 
-struct GamepadMapping
-{
-    static constexpr Button block_device = Button::b;
-    static constexpr Button switch_control_mode = Button::x;
-    static constexpr Button switch_speed_mode = Button::y;
+struct GamepadMapping {
+  static constexpr Button block_device = Button::b;
+  static constexpr Button switch_control_mode = Button::x;
+  static constexpr Button switch_speed_mode = Button::y;
 
-    static constexpr Axis x_axis = Axis::left_stick_x;
-    static constexpr Axis y_axis = Axis::left_stick_y;
+  static constexpr Axis x_axis = Axis::left_stick_x;
+  static constexpr Axis y_axis = Axis::left_stick_y;
 
-    static constexpr Button z_positive = Button::right_trigger_click;
-    static constexpr Button z_negative = Button::left_trigger_click;
+  static constexpr Button z_positive = Button::right_trigger_click;
+  static constexpr Button z_negative = Button::left_trigger_click;
 
-    static constexpr Axis roll_axis = Axis::right_pad_x;
-    static constexpr Axis pitch_axis = Axis::right_pad_y;
+  static constexpr Axis roll_axis = Axis::right_pad_x;
+  static constexpr Axis pitch_axis = Axis::right_pad_y;
 
-    static constexpr Button yaw_positive = Button::right_bumper;
-    static constexpr Button yaw_negative = Button::left_bumper;
+  static constexpr Button yaw_positive = Button::right_bumper;
+  static constexpr Button yaw_negative = Button::left_bumper;
 
-    static constexpr Button linear_step_button = Button::left_stick_click;
-    static constexpr Button angular_step_button = Button::right_pad_click;
+  static constexpr Button linear_step_button = Button::left_stick_click;
+  static constexpr Button angular_step_button = Button::right_pad_click;
 
-    static constexpr Button joint_modifier = Button::right_pad_click;
+  static constexpr Button joint_modifier = Button::right_pad_click;
 
-    static constexpr Button joint_1_positive = Button::right_trigger_click;
-    static constexpr Button joint_1_negative = Button::left_trigger_click;
+  static constexpr Button joint_1_positive = Button::right_trigger_click;
+  static constexpr Button joint_1_negative = Button::left_trigger_click;
 
-    static constexpr Button joint_2_positive = Button::right_bumper;
-    static constexpr Button joint_2_negative = Button::left_bumper;
+  static constexpr Button joint_2_positive = Button::right_bumper;
+  static constexpr Button joint_2_negative = Button::left_bumper;
 
-    static constexpr Button joint_3_positive = Button::left_pad_down_click;
-    static constexpr Button joint_3_negative = Button::left_pad_top_click;
+  static constexpr Button joint_3_positive = Button::left_pad_down_click;
+  static constexpr Button joint_3_negative = Button::left_pad_top_click;
 
-    static constexpr Button joint_4_positive = Button::left_pad_left_click;
-    static constexpr Button joint_4_negative = Button::left_pad_right_click;
+  static constexpr Button joint_4_positive = Button::left_pad_left_click;
+  static constexpr Button joint_4_negative = Button::left_pad_right_click;
 
-    static constexpr Button joint_5_positive = Button::left_pad_down_click;
-    static constexpr Button joint_5_negative = Button::left_pad_top_click;
+  static constexpr Button joint_5_positive = Button::left_pad_down_click;
+  static constexpr Button joint_5_negative = Button::left_pad_top_click;
 
-    static constexpr Button joint_6_positive = Button::left_pad_left_click;
-    static constexpr Button joint_6_negative = Button::left_pad_right_click;
+  static constexpr Button joint_6_positive = Button::left_pad_left_click;
+  static constexpr Button joint_6_negative = Button::left_pad_right_click;
 
-    static constexpr Button safety_left = Button::left_back_click;
-    static constexpr Button safety_right = Button::right_back_click;
+  static constexpr Button safety_left = Button::left_back_click;
+  static constexpr Button safety_right = Button::right_back_click;
 };
 
-struct KeyboardMapping
-{
-    static constexpr char block_device = 'L';
-    static constexpr char switch_control_mode = '\t';
-    static constexpr char switch_speed_mode = 'S';
+struct KeyboardMapping {
+  static constexpr char block_device = 'L';
+  static constexpr char switch_control_mode = '\t';
+  static constexpr char switch_speed_mode = 'S';
 
-    static constexpr char x_positive = 's';
-    static constexpr char x_negative = 'w';
-    static constexpr char y_positive = 'd';
-    static constexpr char y_negative = 'a';
+  static constexpr char x_positive = 's';
+  static constexpr char x_negative = 'w';
+  static constexpr char y_positive = 'd';
+  static constexpr char y_negative = 'a';
 
-    static constexpr char z_positive = 'q';
-    static constexpr char z_negative = 'e';
+  static constexpr char z_positive = 'q';
+  static constexpr char z_negative = 'e';
 
-    static constexpr char roll_positive = 'u';
-    static constexpr char roll_negative = 'j';
-    static constexpr char pitch_positive = 'h';
-    static constexpr char pitch_negative = 'k';
+  static constexpr char roll_positive = 'u';
+  static constexpr char roll_negative = 'j';
+  static constexpr char pitch_positive = 'h';
+  static constexpr char pitch_negative = 'k';
 
-    static constexpr char yaw_positive = 'y';
-    static constexpr char yaw_negative = 'i';
+  static constexpr char yaw_positive = 'y';
+  static constexpr char yaw_negative = 'i';
 
-    static constexpr char joint_1_positive = '1';
-    static constexpr char joint_1_negative = 'q';
+  static constexpr char joint_1_positive = '1';
+  static constexpr char joint_1_negative = 'q';
 
-    static constexpr char joint_2_positive = '2';
-    static constexpr char joint_2_negative = 'w';
+  static constexpr char joint_2_positive = '2';
+  static constexpr char joint_2_negative = 'w';
 
-    static constexpr char joint_3_positive = '3';
-    static constexpr char joint_3_negative = 'e';
+  static constexpr char joint_3_positive = '3';
+  static constexpr char joint_3_negative = 'e';
 
-    static constexpr char joint_4_positive = '4';
-    static constexpr char joint_4_negative = 'r';
+  static constexpr char joint_4_positive = '4';
+  static constexpr char joint_4_negative = 'r';
 
-    static constexpr char joint_5_positive = '5';
-    static constexpr char joint_5_negative = 't';
+  static constexpr char joint_5_positive = '5';
+  static constexpr char joint_5_negative = 't';
 
-    static constexpr char joint_6_positive = '6';
-    static constexpr char joint_6_negative = 'y';
+  static constexpr char joint_6_positive = '6';
+  static constexpr char joint_6_negative = 'y';
 };
 
-
-} // namespace teleop2servo
+}  // namespace teleop2servo
 
 #endif  // TELEOP2SERVO__TELEOP_DEVICE_MAPPING_HPP_

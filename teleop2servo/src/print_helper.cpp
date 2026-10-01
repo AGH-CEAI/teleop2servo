@@ -57,8 +57,8 @@ std::string PrintHelper::build_status(ControlMode control_mode, SpeedMode speed_
   std::ostringstream oss;
 
   oss << Color::BOLD << "╔" << horizontal << "╗" << Color::RESET << "\n"
-      << Color::BOLD << "║" << Color::RESET << colored << std::string(padding, ' ') << Color::BOLD << "║" << Color::RESET
-      << "\n"
+      << Color::BOLD << "║" << Color::RESET << colored << std::string(padding, ' ') << Color::BOLD << "║"
+      << Color::RESET << "\n"
       << Color::BOLD << "╚" << horizontal << "╝" << Color::RESET << "\n";
 
   return oss.str();
@@ -219,9 +219,9 @@ std::string PrintHelper::build_keyboard_layout(ControlMode control_mode) {
                                M::joint_3_positive, M::joint_3_negative, M::joint_4_positive, M::joint_4_negative,
                                M::joint_5_positive, M::joint_5_negative, M::joint_6_positive, M::joint_6_negative};
 
-  const std::string twist_keys{M::x_positive,     M::x_negative,     M::y_positive,     M::y_negative,
-                               M::z_positive,     M::z_negative,     M::roll_positive,  M::roll_negative,
-                               M::pitch_positive, M::pitch_negative, M::yaw_positive,   M::yaw_negative};
+  const std::string twist_keys{M::x_positive,     M::x_negative,     M::y_positive,    M::y_negative,
+                               M::z_positive,     M::z_negative,     M::roll_positive, M::roll_negative,
+                               M::pitch_positive, M::pitch_negative, M::yaw_positive,  M::yaw_negative};
 
   const std::string& active_keys = (control_mode == ControlMode::JOINT) ? joint_keys : twist_keys;
 
@@ -254,8 +254,7 @@ std::string PrintHelper::build_keyboard_joint_instructions() {
   using M = KeyboardMapping;
   std::ostringstream oss;
 
-  oss << Color::RESET << build_keyboard_layout(ControlMode::JOINT)
-      << "\nJOINT MOVEMENT:\n"
+  oss << Color::RESET << build_keyboard_layout(ControlMode::JOINT) << "\nJOINT MOVEMENT:\n"
       << "  J1: [" << M::joint_1_positive << "] positive / [" << M::joint_1_negative << "] negative\n"
       << "  J2: [" << M::joint_2_positive << "] positive / [" << M::joint_2_negative << "] negative\n"
       << "  J3: [" << M::joint_3_positive << "] positive / [" << M::joint_3_negative << "] negative\n"
@@ -271,8 +270,7 @@ std::string PrintHelper::build_keyboard_twist_instructions() {
   using M = KeyboardMapping;
   std::ostringstream oss;
 
-  oss << Color::RESET << build_keyboard_layout(ControlMode::BASE)
-      << "\nTWIST MOVEMENT:\n"
+  oss << Color::RESET << build_keyboard_layout(ControlMode::BASE) << "\nTWIST MOVEMENT:\n"
       << "  Linear X:  [" << M::x_positive << "] positive / [" << M::x_negative << "] negative\n"
       << "  Linear Y:  [" << M::y_positive << "] positive / [" << M::y_negative << "] negative\n"
       << "  Linear Z:  [" << M::z_positive << "] positive / [" << M::z_negative << "] negative\n"
