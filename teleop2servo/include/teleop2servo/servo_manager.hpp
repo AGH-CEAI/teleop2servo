@@ -1,5 +1,5 @@
-#ifndef TELEOP2SERVO__SERVO_ACTIVATOR_HPP_
-#define TELEOP2SERVO__SERVO_ACTIVATOR_HPP_
+#ifndef TELEOP2SERVO__SERVO_MANAGER_HPP_
+#define TELEOP2SERVO__SERVO_MANAGER_HPP_
 
 #include <mutex>
 #include <string>
@@ -13,9 +13,9 @@
 
 namespace teleop2servo {
 
-class ServoActivator {
+class ServoManager {
  public:
-  ServoActivator(rclcpp::Node& node, const ServoActivationConfig& config);
+  ServoManager(rclcpp::Node& node, const ServoActivationConfig& config);
 
   bool activate();
   void deactivate();
@@ -48,4 +48,4 @@ class ServoActivator {
 
 }  // namespace teleop2servo
 
-#endif  // TELEOP2SERVO__SERVO_ACTIVATOR_HPP_
+#endif  // TELEOP2SERVO__SERVO_MANAGER_HPP_

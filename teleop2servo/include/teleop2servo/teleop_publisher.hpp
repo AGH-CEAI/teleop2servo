@@ -9,7 +9,7 @@
 
 #include <geometry_msgs/msg/twist_stamped.hpp>
 #include <control_msgs/msg/joint_jog.hpp>
-#include "teleop2servo/servo_activator.hpp"
+#include "teleop2servo/servo_manager.hpp"
 #include "teleop2servo/teleop_config.hpp"
 #include "teleop2servo/teleop_utils.hpp"
 #include "teleop2servo/print_helper.hpp"
@@ -64,7 +64,7 @@ class TeleopPublisher {
   rclcpp::Publisher<control_msgs::msg::JointJog>::SharedPtr joint_pub_;
   rclcpp::TimerBase::SharedPtr pub_timer_;
 
-  std::unique_ptr<ServoActivator> servo_activator_;
+  std::unique_ptr<ServoManager> servo_manager_;
   rclcpp::PreShutdownCallbackHandle pre_shutdown_handle_;
 };
 

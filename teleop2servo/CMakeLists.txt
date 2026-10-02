@@ -17,7 +17,7 @@ find_package(std_msgs REQUIRED)
 find_package(std_srvs REQUIRED)
 
 add_library(teleop_gamepad_node SHARED src/teleop_gamepad_node.cpp src/teleop_publisher.cpp
-                                       src/servo_activator.cpp src/print_helper.cpp)
+                                       src/servo_manager.cpp src/print_helper.cpp)
 
 target_include_directories(
   teleop_gamepad_node PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -51,7 +51,7 @@ add_executable(
   src/teleop_keyboard_node.cpp
   src/keyboard_reader.cpp
   src/teleop_publisher.cpp
-  src/servo_activator.cpp
+  src/servo_manager.cpp
   src/print_helper.cpp)
 
 target_include_directories(

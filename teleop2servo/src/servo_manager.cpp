@@ -5,11 +5,11 @@
 
 #include <rclcpp/rclcpp.hpp>
 
-#include "teleop2servo/servo_activator.hpp"
+#include "teleop2servo/servo_manager.hpp"
 
 namespace teleop2servo {
 
-ServoActivator::ServoActivator(rclcpp::Node& node, const ServoActivationConfig& config) : node_(node), config_(config) {
+ServoManager::ServoManager(rclcpp::Node& node, const ServoActivationConfig& config) : node_(node), config_(config) {
   callback_group_ = node_.create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive, false);
   executor_.add_callback_group(callback_group_, node_.get_node_base_interface());
 
@@ -27,7 +27,7 @@ ServoActivator::ServoActivator(rclcpp::Node& node, const ServoActivationConfig& 
   }
 }
 
-bool ServoActivator::activate() {
+bool ServoManager::activate() {
   std::lock_guard<std::mutex> lock(mutex_);
 
   if (active_)
@@ -48,7 +48,7 @@ bool ServoActivator::activate() {
   return true;
 }
 
-void ServoActivator::deactivate() {
+void ServoManager::deactivate() {
   std::lock_guard<std::mutex> lock(mutex_);
 
   if (!active_)
@@ -64,8 +64,8 @@ void ServoActivator::deactivate() {
   active_ = false;
 }
 
-bool ServoActivator::switch_controllers(const std::vector<std::string>& activate,
-                                        const std::vector<std::string>& deactivate) {
+bool ServoManager::switch_controllers(const std::vector<std::string>& activate,
+                                      const std::vector<std::string>& deactivate) {
   if (!switch_client_ || (activate.empty() && deactivate.empty()))
     return true;
 
@@ -87,7 +87,7 @@ bool ServoActivator::switch_controllers(const std::vector<std::string>& activate
   return true;
 }
 
-bool ServoActivator::trigger(const rclcpp::Client<Trigger>::SharedPtr& client) {
+bool ServoManager::trigger(const rclcpp::Client<Trigger>::SharedPtr& client) {
   const auto response = call<Trigger>(client, std::make_shared<Trigger::Request>());
   if (!response)
     return false;
@@ -100,8 +100,8 @@ bool ServoActivator::trigger(const rclcpp::Client<Trigger>::SharedPtr& client) {
 }
 
 template <typename ServiceT>
-typename ServiceT::Response::SharedPtr ServoActivator::call(const typename rclcpp::Client<ServiceT>::SharedPtr& client,
-                                                            const typename ServiceT::Request::SharedPtr& request) {
+typename ServiceT::Response::SharedPtr ServoManager::call(const typename rclcpp::Client<ServiceT>::SharedPtr& client,
+                                                          const typename ServiceT::Request::SharedPtr& request) {
   const auto timeout = std::chrono::duration<double>(config_.service_timeout_s);
 
   if (!client->wait_for_service(timeout)) {

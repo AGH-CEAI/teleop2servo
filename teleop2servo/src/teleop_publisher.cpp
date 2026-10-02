@@ -83,7 +83,7 @@ void TeleopPublisher::setup_timers() {
 
 void TeleopPublisher::setup_servo_activation() {
   if (config_.servo_activation.enabled)
-    servo_activator_ = std::make_unique<ServoActivator>(node_, config_.servo_activation);
+    servo_manager_ = std::make_unique<ServoManager>(node_, config_.servo_activation);
 
   pre_shutdown_handle_ =
       node_.get_node_base_interface()->get_context()->add_pre_shutdown_callback([this]() { on_shutdown(); });
@@ -92,8 +92,8 @@ void TeleopPublisher::setup_servo_activation() {
 void TeleopPublisher::on_shutdown() {
   stop_motion();
 
-  if (servo_activator_)
-    servo_activator_->deactivate();
+  if (servo_manager_)
+    servo_manager_->deactivate();
 }
 
 ControlMode TeleopPublisher::get_control_mode() const {
@@ -172,14 +172,14 @@ void TeleopPublisher::block_teleop_device() {
     state_.device_blocked = true;
   }
 
-  if (servo_activator_)
-    servo_activator_->deactivate();
+  if (servo_manager_)
+    servo_manager_->deactivate();
 
   print_instructions();
 }
 
 void TeleopPublisher::unblock_teleop_device() {
-  if (servo_activator_ && !servo_activator_->activate()) {
+  if (servo_manager_ && !servo_manager_->activate()) {
     RCLCPP_ERROR(node_.get_logger(), "MoveIt Servo activation failed, device stays blocked.");
     print_instructions();
     return;
