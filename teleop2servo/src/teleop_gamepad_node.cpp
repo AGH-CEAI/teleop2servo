@@ -73,7 +73,7 @@ bool TeleopGamepadNode::joy_in_use(const sensor_msgs::msg::Joy::SharedPtr& msg) 
     }
   }
   for (const auto& axis : msg->axes) {
-    if (std::fabs(axis) > gamepad_config_.eps) {
+    if (std::fabs(axis) > GamepadConfig::EPS) {
       return true;
     }
   }
@@ -206,7 +206,7 @@ void TeleopGamepadNode::create_cmd_joint(const sensor_msgs::msg::Joy::SharedPtr&
   }
 
   for (double v : cmd.joint_velocities) {
-    if (std::abs(v) > gamepad_config_.eps) {
+    if (std::abs(v) > GamepadConfig::EPS) {
       cmd.type = ActiveCmdType::JOINT;
       return;
     }
@@ -248,12 +248,12 @@ void TeleopGamepadNode::create_cmd_twist(const sensor_msgs::msg::Joy::SharedPtr&
   cmd.twist_msg.twist.angular.y = angular_y_dir * scale_ang;
   cmd.twist_msg.twist.angular.z = angular_z_dir * scale_ang;
 
-  const bool any_motion = std::abs(cmd.twist_msg.twist.linear.x) > gamepad_config_.eps ||
-                          std::abs(cmd.twist_msg.twist.linear.y) > gamepad_config_.eps ||
-                          std::abs(cmd.twist_msg.twist.linear.z) > gamepad_config_.eps ||
-                          std::abs(cmd.twist_msg.twist.angular.x) > gamepad_config_.eps ||
-                          std::abs(cmd.twist_msg.twist.angular.y) > gamepad_config_.eps ||
-                          std::abs(cmd.twist_msg.twist.angular.z) > gamepad_config_.eps;
+  const bool any_motion = std::abs(cmd.twist_msg.twist.linear.x) > GamepadConfig::EPS ||
+                          std::abs(cmd.twist_msg.twist.linear.y) > GamepadConfig::EPS ||
+                          std::abs(cmd.twist_msg.twist.linear.z) > GamepadConfig::EPS ||
+                          std::abs(cmd.twist_msg.twist.angular.x) > GamepadConfig::EPS ||
+                          std::abs(cmd.twist_msg.twist.angular.y) > GamepadConfig::EPS ||
+                          std::abs(cmd.twist_msg.twist.angular.z) > GamepadConfig::EPS;
 
   if (any_motion) {
     cmd.type = ActiveCmdType::TWIST;

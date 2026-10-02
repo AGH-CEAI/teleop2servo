@@ -3,46 +3,37 @@ import os
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument
-from launch.conditions import IfCondition
-from launch.substitutions import LaunchConfiguration, PythonExpression
+from launch.conditions import LaunchConfigurationEquals
 from launch_ros.actions import ComposableNodeContainer, Node
 from launch_ros.descriptions import ComposableNode
 
 
 def generate_launch_description():
-    teleop_device = LaunchConfiguration("teleop_device")
+    config_dir = os.path.join(get_package_share_directory("teleop2servo"), "config")
 
-    gamepad_config_file = os.path.join(
-        get_package_share_directory("teleop2servo"),
-        "config",
-        "teleop_gamepad.yaml",
+    teleop_device_arg = DeclareLaunchArgument(
+        "teleop_device",
+        default_value="keyboard",
+        choices=["keyboard", "gamepad"],
+        description="Teleop input device.",
     )
-    keyboard_config_file = os.path.join(
-        get_package_share_directory("teleop2servo"),
-        "config",
-        "teleop_keyboard.yaml",
-    )
+    use_gamepad = LaunchConfigurationEquals("teleop_device", "gamepad")
+    use_keyboard = LaunchConfigurationEquals("teleop_device", "keyboard")
 
     gamepad_container = ComposableNodeContainer(
         name="teleop2servo_container",
         namespace="",
         package="rclcpp_components",
-        executable="component_container_mt",  # MultiThreadedExecutor
+        executable="component_container_mt",
         output="screen",
-        condition=IfCondition(PythonExpression(["'", teleop_device, "' == 'gamepad'"])),
+        condition=use_gamepad,
         composable_node_descriptions=[
-            ComposableNode(
-                package="joy",
-                plugin="joy::Joy",
-                name="joy_node",
-                # TODO(PR#4) Construct whole launch file logic for Keyboard/Gamepad selection
-                # condition=IfCondition(cfg["launch_rviz"]),
-            ),
+            ComposableNode(package="joy", plugin="joy::Joy", name="joy_node"),
             ComposableNode(
                 package="teleop2servo",
                 plugin="teleop2servo::TeleopGamepadNode",
                 name="gamepad_teleop_node",
-                parameters=[gamepad_config_file],
+                parameters=[os.path.join(config_dir, "teleop_gamepad.yaml")],
             ),
         ],
     )
@@ -53,20 +44,8 @@ def generate_launch_description():
         name="keyboard_teleop_node",
         output="screen",
         emulate_tty=True,
-        parameters=[keyboard_config_file],
-        condition=IfCondition(
-            PythonExpression(["'", teleop_device, "' == 'keyboard'"])
-        ),
+        parameters=[os.path.join(config_dir, "teleop_keyboard.yaml")],
+        condition=use_keyboard,
     )
 
-    return LaunchDescription(
-        [
-            DeclareLaunchArgument(
-                "teleop_device",
-                default_value="keyboard",
-                description="Teleop input device: gamepad or keyboard.",
-            ),
-            gamepad_container,
-            keyboard_node,
-        ]
-    )
+    return LaunchDescription([teleop_device_arg, gamepad_container, keyboard_node])
