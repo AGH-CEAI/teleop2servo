@@ -6,6 +6,18 @@
 
 namespace teleop2servo {
 
+struct ServoActivationConfig {
+  bool enabled = false;
+  double service_timeout_s = 2.0;
+
+  std::string switch_controller_service = "/controller_manager/switch_controller";
+  std::vector<std::string> activate_controllers = {"forward_position_controller"};
+  std::vector<std::string> deactivate_controllers = {"scaled_joint_trajectory_controller"};
+
+  std::string start_servo_service = "/servo_node/start_servo";
+  std::string stop_servo_service = "/servo_node/stop_servo";
+};
+
 struct TeleopConfig {
   double servo_publish_hz = 250.0;
   int servo_ticks_per_policy_step = 10;
@@ -29,14 +41,20 @@ struct TeleopConfig {
 
   double twist_ang_step = 0.1;
   double twist_ang_cont_max = 0.8;
+
+  ServoActivationConfig servo_activation;
 };
 
 struct GamepadConfig {
   std::string joy_topic = "/joy";
-  double EPS = 1e-7;
+  static constexpr double EPS = 1e-7;
 };
 
-struct KeyboardConfig {};
+struct KeyboardConfig {
+  double reading_keyboard_hz = 250.0;
+  double key_initial_timeout_s = 0.55;
+  double key_repeat_timeout_s = 0.1;
+};
 
 }  // namespace teleop2servo
 

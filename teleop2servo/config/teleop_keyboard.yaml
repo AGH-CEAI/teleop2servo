@@ -1,0 +1,47 @@
+keyboard_teleop_node:
+  ros__parameters:
+    servo_publish_hz: 250.0
+    servo_ticks_per_policy_step: 25
+
+    reading_keyboard_hz: 250.0
+    key_initial_timeout_s: 0.55   # must be > system autorepeat delay
+    key_repeat_timeout_s: 0.1     # must be > system autorepeat interval
+
+    # serwo topics
+    twist_topic: "/servo_node/delta_twist_cmds"
+    joint_topic: "/servo_node/delta_joint_cmds"
+    queue_size: 10
+
+    base_frame_id: "base_link"
+    ee_frame_id: "tool0"
+
+    joint_names:
+      - shoulder_pan_joint
+      - shoulder_lift_joint
+      - elbow_joint
+      - wrist_1_joint
+      - wrist_2_joint
+      - wrist_3_joint
+
+    # speeds
+    joint_vel_step: 0.1       # normalized input [-1,1] -> multiplied by Servo scale.joint
+    joint_vel_cont_max: 0.8   # normalized input [-1,1] -> multiplied by Servo scale.joint
+
+    twist_lin_step: 0.1       # normalized input [-1,1] -> multiplied by Servo scale.linear
+    twist_lin_cont_max: 0.5   # normalized input [-1,1] -> multiplied by Servo scale.linear
+
+    twist_ang_step: 0.1       # normalized input [-1,1] -> multiplied by Servo scale.rotational
+    twist_ang_cont_max: 0.8   # normalized input [-1,1] -> multiplied by Servo scale.rotational
+
+    # MoveIt Servo activation: on every device unblock Servo is activated,
+    # on block and on Ctrl+C it is stopped and the initial controllers are restored.
+    servo_activation:
+      enabled: true                    # false = teleop only publishes, controllers/Servo are managed elsewhere
+      service_timeout_s: 2.0           # per service call; on failure the device stays blocked
+      # controller_manager_msgs/srv/SwitchController, "" = do not switch controllers
+      switch_controller_service: "/controller_manager/switch_controller"
+      activate_controllers: ["forward_position_controller"]           # on block / Ctrl+C: deactivated
+      deactivate_controllers: ["scaled_joint_trajectory_controller"]  # on block / Ctrl+C: activated
+      # std_srvs/srv/Trigger, "" = skip
+      start_servo_service: "/servo_node/start_servo"   # on unblock, after switching controllers
+      stop_servo_service: "/servo_node/stop_servo"     # on block / Ctrl+C, before switching back

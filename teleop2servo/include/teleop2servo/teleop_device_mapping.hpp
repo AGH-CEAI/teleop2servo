@@ -1,7 +1,8 @@
 #ifndef TELEOP2SERVO__TELEOP_DEVICE_MAPPING_HPP_
 #define TELEOP2SERVO__TELEOP_DEVICE_MAPPING_HPP_
 
-namespace teleop2servo {  // TODO (issue#8): Configure key mapping from external yaml file
+namespace teleop2servo {
+// TODO (issue#8): Configure key mapping from external yaml file
 
 enum class Axis : int {
   left_stick_x = 0,
@@ -78,8 +79,48 @@ struct GamepadMapping {
   static constexpr Button joint_6_positive = Button::left_pad_left_click;
   static constexpr Button joint_6_negative = Button::left_pad_right_click;
 
-  static constexpr Button safety_left = Button::left_pad_left_click;
-  static constexpr Button safety_right = Button::left_pad_right_click;
+  static constexpr Button safety_left = Button::left_back_click;
+  static constexpr Button safety_right = Button::right_back_click;
+};
+
+struct KeyboardMapping {
+  static constexpr char block_device = 'L';
+  static constexpr char switch_control_mode = '\t';
+  static constexpr char switch_speed_mode = 'S';
+
+  static constexpr char x_positive = 's';
+  static constexpr char x_negative = 'w';
+  static constexpr char y_positive = 'd';
+  static constexpr char y_negative = 'a';
+
+  static constexpr char z_positive = 'q';
+  static constexpr char z_negative = 'e';
+
+  static constexpr char roll_positive = 'u';
+  static constexpr char roll_negative = 'j';
+  static constexpr char pitch_positive = 'h';
+  static constexpr char pitch_negative = 'k';
+
+  static constexpr char yaw_positive = 'y';
+  static constexpr char yaw_negative = 'i';
+
+  static constexpr char joint_1_positive = '1';
+  static constexpr char joint_1_negative = 'q';
+
+  static constexpr char joint_2_positive = '2';
+  static constexpr char joint_2_negative = 'w';
+
+  static constexpr char joint_3_positive = '3';
+  static constexpr char joint_3_negative = 'e';
+
+  static constexpr char joint_4_positive = '4';
+  static constexpr char joint_4_negative = 'r';
+
+  static constexpr char joint_5_positive = '5';
+  static constexpr char joint_5_negative = 't';
+
+  static constexpr char joint_6_positive = '6';
+  static constexpr char joint_6_negative = 'y';
 };
 
 }  // namespace teleop2servo

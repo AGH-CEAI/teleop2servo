@@ -7,14 +7,17 @@ endif()
 
 find_package(ament_cmake REQUIRED)
 find_package(control_msgs REQUIRED)
+find_package(controller_manager_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(magic_enum CONFIG REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclcpp_components REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(std_msgs REQUIRED)
+find_package(std_srvs REQUIRED)
+
 add_library(teleop_gamepad_node SHARED src/teleop_gamepad_node.cpp src/teleop_publisher.cpp
-                                       src/print_helper.cpp)
+                                       src/servo_activator.cpp src/print_helper.cpp)
 
 target_include_directories(
   teleop_gamepad_node PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -25,12 +28,14 @@ target_compile_definitions(teleop_gamepad_node PRIVATE "RCLCPP_COMPONENTS_BUILDI
 ament_target_dependencies(
   teleop_gamepad_node
   control_msgs
+  controller_manager_msgs
   geometry_msgs
   magic_enum
   rclcpp
   rclcpp_components
   sensor_msgs
-  std_msgs)
+  std_msgs
+  std_srvs)
 
 target_link_libraries(teleop_gamepad_node magic_enum::magic_enum)
 
@@ -41,8 +46,33 @@ rclcpp_components_register_node(
   EXECUTABLE
   teleop_gamepad_node_exec)
 
+add_executable(
+  teleop_keyboard_node
+  src/teleop_keyboard_node.cpp
+  src/keyboard_reader.cpp
+  src/teleop_publisher.cpp
+  src/servo_activator.cpp
+  src/print_helper.cpp)
+
+target_include_directories(
+  teleop_keyboard_node PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+                              $<INSTALL_INTERFACE:include>)
+
+ament_target_dependencies(
+  teleop_keyboard_node
+  control_msgs
+  controller_manager_msgs
+  geometry_msgs
+  magic_enum
+  rclcpp
+  sensor_msgs
+  std_msgs
+  std_srvs)
+
+target_link_libraries(teleop_keyboard_node magic_enum::magic_enum)
+
 install(
-  TARGETS teleop_gamepad_node teleop_gamepad_node_exec
+  TARGETS teleop_gamepad_node teleop_gamepad_node_exec teleop_keyboard_node
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION lib/${PROJECT_NAME})
