@@ -51,14 +51,20 @@ std::optional<char> TeleopKeyboardNode::read_last_key() {
   return last;
 }
 
+// The terminal reports no key releases, only characters: one on press, then, after the
+// system auto-repeat delay (~0.5 s), a stream of repeats (~30 ms apart).
+// Press, hold and release are reconstructed from that timing.
 void TeleopKeyboardNode::handle_key_input() {
   const auto now = SteadyClock::now();
   const double since_last_key = std::chrono::duration<double>(now - last_key_time_).count();
 
+  // A key arrived: classify it as a new press or an auto-repeat of the held key.
+  // Classi
   if (const auto key = read_last_key()) {
     const bool new_press = !held_key_ || *held_key_ != *key;
     const bool autorepeat = !new_press && since_last_key < keyboard_config_.key_repeat_timeout_s;
 
+    // Another key interrupted an unresolved char of the previous one, so that one was a tap.
     if (pending_tap_ && new_press)
       process_key(*held_key_, false, false);
 
@@ -66,6 +72,7 @@ void TeleopKeyboardNode::handle_key_input() {
     held_key_ = *key;
     last_key_time_ = now;
 
+    // Same key after a pause: a new tap or the first auto-repeat. Decided on the next ticks.
     pending_tap_ = !new_press && !autorepeat;
     if (pending_tap_)
       return;
@@ -74,14 +81,18 @@ void TeleopKeyboardNode::handle_key_input() {
     return;
   }
 
+  // No key in this tick.
   if (!held_key_)
     return;
 
+  // No repeat followed the unresolved char, so the key is not held: it was a tap.
   if (pending_tap_ && since_last_key >= keyboard_config_.key_repeat_timeout_s) {
     pending_tap_ = false;
     process_key(*held_key_, false, false);
   }
 
+  // No char within the timeout means the key was released. Before the first repeat
+  // the gap is the long auto-repeat delay, afterwards only the short repeat interval.
   const double release_timeout =
       key_repeat_seen_ ? keyboard_config_.key_repeat_timeout_s : keyboard_config_.key_initial_timeout_s;
 
@@ -94,6 +105,7 @@ void TeleopKeyboardNode::handle_key_input() {
 }
 
 void TeleopKeyboardNode::process_key(char c, bool new_press, bool autorepeat) {
+  // While blocked only the unblock key is handled; block / mode / speed keys never move the robot.
   if (!check_safety_procedure(c, new_press))
     return;
 
@@ -103,6 +115,7 @@ void TeleopKeyboardNode::process_key(char c, bool new_press, bool autorepeat) {
   const ControlMode control_mode = teleop_publisher_.get_control_mode();
   const SpeedMode speed_mode = teleop_publisher_.get_speed_mode();
 
+  // STEP: one step per tap, auto-repeats ignored. CONT: start on press, motion lasts until release.
   const bool trigger = (speed_mode == SpeedMode::STEP) ? !autorepeat : new_press;
   if (!trigger)
     return;
@@ -118,10 +131,12 @@ void TeleopKeyboardNode::process_key(char c, bool new_press, bool autorepeat) {
   teleop_publisher_.set_active_cmd(cmd);
 }
 
+// Stops CONT motion; a running STEP still finishes (see TeleopPublisher::set_active_cmd).
 void TeleopKeyboardNode::on_key_release() {
   teleop_publisher_.set_active_cmd(ActiveCmd());
 }
 
+// Returns true when the device is unblocked and the key may be processed further.
 bool TeleopKeyboardNode::check_safety_procedure(char c, bool new_press) {
   if (!teleop_publisher_.is_device_blocked())
     return true;
@@ -132,6 +147,7 @@ bool TeleopKeyboardNode::check_safety_procedure(char c, bool new_press) {
   return false;
 }
 
+// Returns true for state keys (block / mode / speed); they act only on a new press, not on repeats.
 bool TeleopKeyboardNode::check_state_buttons(char c, bool new_press) {
   switch (c) {
     case KeyboardMapping::block_device:
@@ -169,6 +185,7 @@ void TeleopKeyboardNode::create_cmd_joint(char c, const SpeedMode speed_mode, Ac
       {KeyboardMapping::joint_6_positive, KeyboardMapping::joint_6_negative},
   }};
 
+  // Command only the joint whose +/- key was pressed; an unmapped key leaves the command NONE.
   for (std::size_t i = 0; i < joint_keys.size() && i < config.joint_names.size(); ++i) {
     const auto& [positive, negative] = joint_keys[i];
     if (c != positive && c != negative)
@@ -203,6 +220,7 @@ void TeleopKeyboardNode::create_cmd_twist(char c,
     return 0.0;
   };
 
+  // Each axis gets +1, -1 or 0 from the key; only one key is handled at a time, so at most one axis moves.
   auto& twist = cmd.twist_msg.twist;
   twist.linear.x = direction(KeyboardMapping::x_positive, KeyboardMapping::x_negative) * scale_lin;
   twist.linear.y = direction(KeyboardMapping::y_positive, KeyboardMapping::y_negative) * scale_lin;

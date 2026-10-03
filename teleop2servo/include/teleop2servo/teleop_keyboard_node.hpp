@@ -50,10 +50,10 @@ class TeleopKeyboardNode : public rclcpp::Node {
   TeleopPublisher teleop_publisher_;
   rclcpp::TimerBase::SharedPtr key_timer_;
 
-  std::optional<char> held_key_;
-  bool key_repeat_seen_{false};
-  bool pending_tap_{false};
-  SteadyClock::time_point last_key_time_;
+  std::optional<char> held_key_;           // key currently considered pressed
+  bool key_repeat_seen_{false};            // auto-repeat stream started for held_key_
+  bool pending_tap_{false};                // same key after a pause, not yet known if tap or hold
+  SteadyClock::time_point last_key_time_;  // time of the last received char
 };
 
 }  // namespace teleop2servo
