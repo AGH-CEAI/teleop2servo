@@ -18,6 +18,15 @@ struct ServoActivationConfig {
   std::string stop_servo_service = "/servo_node/stop_servo";
 };
 
+struct GripperConfig {
+  bool enabled = false;
+  std::string action_name = "/gripper_action_controller/gripper_cmd";
+
+  double open_position = 0.025;
+  double close_position = 0.0;
+  double max_effort = 0.0;
+};
+
 struct TeleopConfig {
   double servo_publish_hz = 250.0;
   int servo_ticks_per_policy_step = 10;
@@ -43,6 +52,7 @@ struct TeleopConfig {
   double twist_ang_cont_max = 0.8;
 
   ServoActivationConfig servo_activation;
+  GripperConfig gripper;
 };
 
 struct GamepadConfig {

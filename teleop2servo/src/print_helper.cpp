@@ -10,17 +10,19 @@ namespace teleop2servo {
 std::string PrintHelper::build_teleop_msg_layout_and_instructions(TeleopDevice teleop_device,
                                                                   ControlMode control_mode,
                                                                   SpeedMode speed_mode,
-                                                                  bool device_blocked) {
+                                                                  bool device_blocked,
+                                                                  GripperState gripper_state) {
   std::ostringstream oss;
+  const bool gripper_enabled = gripper_state != GripperState::DISABLED;
 
-  oss << build_banner(teleop_device) << build_status(control_mode, speed_mode, device_blocked);
+  oss << build_banner(teleop_device) << build_status(control_mode, speed_mode, device_blocked, gripper_state);
 
   switch (teleop_device) {
     case TeleopDevice::GAMEPAD:
-      oss << build_gamepad_instructions(control_mode, device_blocked);
+      oss << build_gamepad_instructions(control_mode, device_blocked, gripper_enabled);
       break;
     case TeleopDevice::KEYBOARD:
-      oss << build_keyboard_instructions(control_mode, device_blocked);
+      oss << build_keyboard_instructions(control_mode, device_blocked, gripper_enabled);
       break;
     default:
       oss << Color::BOLD << "\n\nERROR: TeleopDevice with this name not found...\n" << Color::RESET;
@@ -30,8 +32,11 @@ std::string PrintHelper::build_teleop_msg_layout_and_instructions(TeleopDevice t
   return oss.str();
 }
 
-std::string PrintHelper::build_status(ControlMode control_mode, SpeedMode speed_mode, bool device_blocked) {
-  static constexpr std::size_t BOX_INNER_WIDTH = 70;
+std::string PrintHelper::build_status(ControlMode control_mode,
+                                      SpeedMode speed_mode,
+                                      bool device_blocked,
+                                      GripperState gripper_state) {
+  static constexpr std::size_t BOX_INNER_WIDTH = 72;
 
   std::string plain;
   std::string colored;
@@ -42,10 +47,14 @@ std::string PrintHelper::build_status(ControlMode control_mode, SpeedMode speed_
 
   add("  STATUS: ");
   add(device_blocked ? "BLOCKED" : "READY", device_blocked ? Color::RED : Color::GREEN);
-  add("      MODE: ");
+  add("    MODE: ");
   add(std::string(to_string(control_mode)), Color::CYAN);
-  add("      SPEED: ");
+  add("    SPEED: ");
   add(std::string(to_string(speed_mode)), Color::YELLOW);
+  if (gripper_state != GripperState::DISABLED) {
+    add("    GRIPPER: ");
+    add(std::string(to_string(gripper_state)), Color::GREEN);
+  }
 
   const std::size_t padding = plain.size() < BOX_INNER_WIDTH ? BOX_INNER_WIDTH - plain.size() : 0;
 
@@ -95,10 +104,12 @@ std::string PrintHelper::build_footer() {
   return oss.str();
 }
 
-std::string PrintHelper::build_gamepad_instructions(ControlMode control_mode, bool device_blocked) {
+std::string PrintHelper::build_gamepad_instructions(ControlMode control_mode,
+                                                    bool device_blocked,
+                                                    bool gripper_enabled) {
   std::ostringstream oss;
 
-  oss << build_gamepad_header();
+  oss << build_gamepad_header(gripper_enabled);
 
   if (device_blocked) {
     oss << build_gamepad_safety_procedure();
@@ -113,7 +124,7 @@ std::string PrintHelper::build_gamepad_instructions(ControlMode control_mode, bo
   return oss.str();
 }
 
-std::string PrintHelper::build_gamepad_header() {
+std::string PrintHelper::build_gamepad_header(bool gripper_enabled) {
   std::ostringstream oss;
 
   oss << R"(
@@ -139,8 +150,10 @@ std::string PrintHelper::build_gamepad_header() {
       << "CONTROLS:\n"
       << "  " << Color::RED << "B" << Color::RESET << ": Block gamepad\n"
       << "  " << Color::CYAN << "X" << Color::RESET << ": Switch Mode (JOINT/BASE/TOOL)\n"
-      << "  " << Color::YELLOW << "Y" << Color::RESET << ": Switch Speed (STEP/CONT 5%-100%)"
-      << "\n---------------------------\n";
+      << "  " << Color::YELLOW << "Y" << Color::RESET << ": Switch Speed (STEP/CONT 5%-100%)";
+  if (gripper_enabled)
+    oss << "\n  " << Color::GREEN << "A" << Color::RESET << ": Open / Close gripper";
+  oss << "\n---------------------------\n";
 
   return oss.str();
 }
@@ -181,17 +194,19 @@ std::string PrintHelper::build_gamepad_twist_instructions() {
   return oss.str();
 }
 
-std::string PrintHelper::build_keyboard_instructions(ControlMode control_mode, bool device_blocked) {
+std::string PrintHelper::build_keyboard_instructions(ControlMode control_mode,
+                                                     bool device_blocked,
+                                                     bool gripper_enabled) {
   std::ostringstream oss;
 
-  oss << build_keyboard_header();
+  oss << build_keyboard_header(gripper_enabled);
 
   if (device_blocked) {
     oss << build_keyboard_safety_procedure();
   } else if (control_mode == ControlMode::JOINT) {
-    oss << build_keyboard_joint_instructions();
+    oss << build_keyboard_joint_instructions(gripper_enabled);
   } else {
-    oss << build_keyboard_twist_instructions();
+    oss << build_keyboard_twist_instructions(gripper_enabled);
   }
 
   oss << build_footer();
@@ -199,20 +214,22 @@ std::string PrintHelper::build_keyboard_instructions(ControlMode control_mode, b
   return oss.str();
 }
 
-std::string PrintHelper::build_keyboard_header() {
+std::string PrintHelper::build_keyboard_header(bool gripper_enabled) {
   using M = KeyboardMapping;
   std::ostringstream oss;
 
   oss << "CONTROLS:\n"
       << "  " << Color::RED << M::block_device << Color::RESET << ": Block keyboard\n"
       << "  " << Color::CYAN << M::switch_control_mode << Color::RESET << ": Switch Mode (JOINT/BASE/TOOL)\n"
-      << "  " << Color::YELLOW << M::switch_speed_mode << Color::RESET << ": Switch Speed (STEP/CONT 5%-100%)"
-      << "\n---------------------------\n";
+      << "  " << Color::YELLOW << M::switch_speed_mode << Color::RESET << ": Switch Speed (STEP/CONT 5%-100%)";
+  if (gripper_enabled)
+    oss << "\n  " << Color::GREEN << M::toggle_gripper << Color::RESET << ": Open / Close gripper";
+  oss << "\n---------------------------\n";
 
   return oss.str();
 }
 
-std::string PrintHelper::build_keyboard_layout(ControlMode control_mode) {
+std::string PrintHelper::build_keyboard_layout(ControlMode control_mode, bool gripper_enabled) {
   using M = KeyboardMapping;
   std::ostringstream oss;
 
@@ -224,7 +241,9 @@ std::string PrintHelper::build_keyboard_layout(ControlMode control_mode) {
                                M::z_positive,     M::z_negative,     M::roll_positive, M::roll_negative,
                                M::pitch_positive, M::pitch_negative, M::yaw_positive,  M::yaw_negative};
 
-  const std::string& active_keys = (control_mode == ControlMode::JOINT) ? joint_keys : twist_keys;
+  std::string active_keys = (control_mode == ControlMode::JOINT) ? joint_keys : twist_keys;
+  if (gripper_enabled)
+    active_keys += M::toggle_gripper;
 
   auto row = [&oss, &active_keys](const std::string& prefix, const std::string& keys, const std::string& suffix = "") {
     oss << prefix;
@@ -255,11 +274,11 @@ std::string PrintHelper::build_keyboard_safety_procedure() {
   return oss.str();
 }
 
-std::string PrintHelper::build_keyboard_joint_instructions() {
+std::string PrintHelper::build_keyboard_joint_instructions(bool gripper_enabled) {
   using M = KeyboardMapping;
   std::ostringstream oss;
 
-  oss << Color::RESET << build_keyboard_layout(ControlMode::JOINT) << "\nJOINT MOVEMENT:\n"
+  oss << Color::RESET << build_keyboard_layout(ControlMode::JOINT, gripper_enabled) << "\nJOINT MOVEMENT:\n"
       << "  J1: [" << M::joint_1_positive << "] positive / [" << M::joint_1_negative << "] negative\n"
       << "  J2: [" << M::joint_2_positive << "] positive / [" << M::joint_2_negative << "] negative\n"
       << "  J3: [" << M::joint_3_positive << "] positive / [" << M::joint_3_negative << "] negative\n"
@@ -271,11 +290,11 @@ std::string PrintHelper::build_keyboard_joint_instructions() {
   return oss.str();
 }
 
-std::string PrintHelper::build_keyboard_twist_instructions() {
+std::string PrintHelper::build_keyboard_twist_instructions(bool gripper_enabled) {
   using M = KeyboardMapping;
   std::ostringstream oss;
 
-  oss << Color::RESET << build_keyboard_layout(ControlMode::BASE) << "\nTWIST MOVEMENT:\n"
+  oss << Color::RESET << build_keyboard_layout(ControlMode::BASE, gripper_enabled) << "\nTWIST MOVEMENT:\n"
       << "  Linear X:  [" << M::x_positive << "] positive / [" << M::x_negative << "] negative\n"
       << "  Linear Y:  [" << M::y_positive << "] positive / [" << M::y_negative << "] negative\n"
       << "  Linear Z:  [" << M::z_positive << "] positive / [" << M::z_negative << "] negative\n"

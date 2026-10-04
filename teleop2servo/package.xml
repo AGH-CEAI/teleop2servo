@@ -20,6 +20,7 @@
   <depend>geometry_msgs</depend>
   <depend>magic_enum</depend>
   <depend>rclcpp</depend>
+  <depend>rclcpp_action</depend>
   <depend>rclcpp_components</depend>
   <depend>sensor_msgs</depend>
   <depend>std_msgs</depend>
