@@ -10,19 +10,17 @@ namespace teleop2servo {
 std::string PrintHelper::build_teleop_msg_layout_and_instructions(TeleopDevice teleop_device,
                                                                   ControlMode control_mode,
                                                                   SpeedMode speed_mode,
-                                                                  bool device_blocked,
-                                                                  bool input_paused) {
+                                                                  bool device_blocked) {
   std::ostringstream oss;
 
-  oss << build_banner(teleop_device)
-      << build_status(teleop_device, control_mode, speed_mode, device_blocked, input_paused);
+  oss << build_banner(teleop_device) << build_status(control_mode, speed_mode, device_blocked);
 
   switch (teleop_device) {
     case TeleopDevice::GAMEPAD:
       oss << build_gamepad_instructions(control_mode, device_blocked);
       break;
     case TeleopDevice::KEYBOARD:
-      oss << build_keyboard_instructions(control_mode, device_blocked, input_paused);
+      oss << build_keyboard_instructions(control_mode, device_blocked);
       break;
     default:
       oss << Color::BOLD << "\n\nERROR: TeleopDevice with this name not found...\n" << Color::RESET;
@@ -32,11 +30,7 @@ std::string PrintHelper::build_teleop_msg_layout_and_instructions(TeleopDevice t
   return oss.str();
 }
 
-std::string PrintHelper::build_status(TeleopDevice teleop_device,
-                                      ControlMode control_mode,
-                                      SpeedMode speed_mode,
-                                      bool device_blocked,
-                                      bool input_paused) {
+std::string PrintHelper::build_status(ControlMode control_mode, SpeedMode speed_mode, bool device_blocked) {
   static constexpr std::size_t BOX_INNER_WIDTH = 70;
 
   std::string plain;
@@ -47,11 +41,7 @@ std::string PrintHelper::build_status(TeleopDevice teleop_device,
   };
 
   add("  STATUS: ");
-  if (input_paused) {
-    add(teleop_device == TeleopDevice::KEYBOARD ? "CAPS LOCK ON" : "PAUSED", Color::RED);
-  } else {
-    add(device_blocked ? "BLOCKED" : "READY", device_blocked ? Color::RED : Color::GREEN);
-  }
+  add(device_blocked ? "BLOCKED" : "READY", device_blocked ? Color::RED : Color::GREEN);
   add("      MODE: ");
   add(std::string(to_string(control_mode)), Color::CYAN);
   add("      SPEED: ");
@@ -191,14 +181,12 @@ std::string PrintHelper::build_gamepad_twist_instructions() {
   return oss.str();
 }
 
-std::string PrintHelper::build_keyboard_instructions(ControlMode control_mode, bool device_blocked, bool input_paused) {
+std::string PrintHelper::build_keyboard_instructions(ControlMode control_mode, bool device_blocked) {
   std::ostringstream oss;
 
   oss << build_keyboard_header();
 
-  if (input_paused) {
-    oss << Color::RED << "Caps Lock is ON - turn it off to continue." << Color::RESET;
-  } else if (device_blocked) {
+  if (device_blocked) {
     oss << build_keyboard_safety_procedure();
   } else if (control_mode == ControlMode::JOINT) {
     oss << build_keyboard_joint_instructions();
@@ -215,9 +203,9 @@ std::string PrintHelper::build_keyboard_header() {
   std::ostringstream oss;
 
   oss << "CONTROLS:\n"
-      << "  " << Color::RED << "SHIFT + l" << Color::RESET << ": Block keyboard\n"
+      << "  " << Color::RED << "SPACE" << Color::RESET << ": Block keyboard\n"
       << "  " << Color::CYAN << "TAB" << Color::RESET << ": Switch Mode (JOINT/BASE/TOOL)\n"
-      << "  " << Color::YELLOW << "SHIFT + s" << Color::RESET << ": Switch Speed (STEP/CONT 5%-100%)"
+      << "  " << Color::YELLOW << "+" << Color::RESET << ": Switch Speed (STEP/CONT 5%-100%)"
       << "\n---------------------------\n";
 
   return oss.str();
@@ -237,19 +225,20 @@ std::string PrintHelper::build_keyboard_layout(ControlMode control_mode) {
 
   const std::string& active_keys = (control_mode == ControlMode::JOINT) ? joint_keys : twist_keys;
 
-  auto row = [&oss, &active_keys](const std::string& prefix, const std::string& keys) {
+  auto row = [&oss, &active_keys](const std::string& prefix, const std::string& keys, const std::string& suffix = "") {
     oss << prefix;
     for (const char c : keys) {
       const bool active = active_keys.find(c) != std::string::npos;
       oss << (active ? Color::BOLD : Color::DIM) << "[" << c << "]" << Color::RESET;
     }
-    oss << "\n";
+    oss << suffix << "\n";
   };
 
-  row("\n       ", "1234567890");
-  row("[TAB]   ", "qwertyuiop");
+  row("\n       ", "1234567890", std::string(Color::YELLOW) + "[+]" + Color::RESET);
+  row(std::string(Color::CYAN) + "[TAB]" + Color::RESET + "   ", "qwertyuiop");
   row("          ", "asdfghjkl");
-  row("[SHIFT]     ", "zxcvbnm");
+  row("            ", "zxcvbnm");
+  oss << "                " << Color::RED << "[     SPACE     ]" << Color::RESET << "\n";
 
   return oss.str();
 }
@@ -257,7 +246,7 @@ std::string PrintHelper::build_keyboard_layout(ControlMode control_mode) {
 std::string PrintHelper::build_keyboard_safety_procedure() {
   std::ostringstream oss;
 
-  oss << "Enable keyboard: (press) " << Color::RED << "SHIFT + l" << Color::RESET;
+  oss << "Enable keyboard: (press) " << Color::RED << "SPACE" << Color::RESET;
 
   return oss.str();
 }

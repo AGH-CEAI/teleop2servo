@@ -28,11 +28,9 @@ class TeleopKeyboardNode : public rclcpp::Node {
   void load_param(const std::string& name, T& value);
   void load_keyboard_parameters();
   void setup_timers();
-  bool confirm_without_caps_lock_detection();
 
   // ==== callbacks / main loops ====
   void handle_key_input();
-  void check_caps_lock();
 
   // ==== input processing ====
   std::optional<char> read_last_key();
@@ -51,7 +49,6 @@ class TeleopKeyboardNode : public rclcpp::Node {
   KeyboardReader keyboard_;
   TeleopPublisher teleop_publisher_;
   rclcpp::TimerBase::SharedPtr key_timer_;
-  rclcpp::TimerBase::SharedPtr caps_lock_timer_;
 
   std::optional<char> held_key_;           // key currently considered pressed
   bool key_repeat_seen_{false};            // auto-repeat stream started for held_key_

@@ -84,9 +84,9 @@ struct GamepadMapping {
 };
 
 struct KeyboardMapping {
-  static constexpr char block_device = 'L';
+  static constexpr char block_device = '*';
   static constexpr char switch_control_mode = '\t';
-  static constexpr char switch_speed_mode = 'S';
+  static constexpr char switch_speed_mode = '`';
 
   static constexpr char x_positive = 's';
   static constexpr char x_negative = 'w';
