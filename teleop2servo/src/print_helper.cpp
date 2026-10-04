@@ -200,12 +200,13 @@ std::string PrintHelper::build_keyboard_instructions(ControlMode control_mode, b
 }
 
 std::string PrintHelper::build_keyboard_header() {
+  using M = KeyboardMapping;
   std::ostringstream oss;
 
   oss << "CONTROLS:\n"
-      << "  " << Color::RED << "SPACE" << Color::RESET << ": Block keyboard\n"
-      << "  " << Color::CYAN << "TAB" << Color::RESET << ": Switch Mode (JOINT/BASE/TOOL)\n"
-      << "  " << Color::YELLOW << "+" << Color::RESET << ": Switch Speed (STEP/CONT 5%-100%)"
+      << "  " << Color::RED << M::block_device << Color::RESET << ": Block keyboard\n"
+      << "  " << Color::CYAN << M::switch_control_mode << Color::RESET << ": Switch Mode (JOINT/BASE/TOOL)\n"
+      << "  " << Color::YELLOW << M::switch_speed_mode << Color::RESET << ": Switch Speed (STEP/CONT 5%-100%)"
       << "\n---------------------------\n";
 
   return oss.str();
@@ -234,11 +235,13 @@ std::string PrintHelper::build_keyboard_layout(ControlMode control_mode) {
     oss << suffix << "\n";
   };
 
-  row("\n       ", "1234567890", std::string(Color::YELLOW) + "[+]" + Color::RESET);
+  const std::string speed_key = std::string(Color::YELLOW) + "[" + M::switch_speed_mode + "]" + Color::RESET;
+  const std::string block_key = std::string(Color::RED) + "[" + M::block_device + "]" + Color::RESET;
+
+  row("\n    " + speed_key, "1234567890", "   " + block_key);
   row(std::string(Color::CYAN) + "[TAB]" + Color::RESET + "   ", "qwertyuiop");
   row("          ", "asdfghjkl");
   row("            ", "zxcvbnm");
-  oss << "                " << Color::RED << "[     SPACE     ]" << Color::RESET << "\n";
 
   return oss.str();
 }
@@ -246,7 +249,7 @@ std::string PrintHelper::build_keyboard_layout(ControlMode control_mode) {
 std::string PrintHelper::build_keyboard_safety_procedure() {
   std::ostringstream oss;
 
-  oss << "Enable keyboard: (press) " << Color::RED << "SPACE" << Color::RESET;
+  oss << "Enable keyboard: (press) " << Color::RED << KeyboardMapping::block_device << Color::RESET;
 
   return oss.str();
 }

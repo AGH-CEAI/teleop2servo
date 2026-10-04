@@ -143,7 +143,7 @@ Velocity values are normalized commands, scaled by Servo's `scale.*` parameters.
 - The keyboard node reads the controlling terminal (`/dev/tty`), so the terminal must have focus.
 - Terminals report no key-release events. A key counts as released when no auto-repeat arrives within the timeouts above, so motion in `CONT` stops about 0.5 s after a short tap.
 - Only one key is handled at a time.
-- Keys are case-insensitive and the state keys are `Space` (block / unblock), `Tab` (mode) and `+` (speed), so Caps Lock and Shift don't affect control.
+- Keys are case-insensitive and the state keys are `*` (block / unblock), `Tab` (mode) and `` ` `` (speed), so Caps Lock doesn't affect control.
 - If motion stutters while a key is held, check your key-repeat settings (on GNOME: `gsettings get org.gnome.desktop.peripherals.keyboard delay` and `repeat-interval`) and adjust the timeouts.
 
 ## Development notes
