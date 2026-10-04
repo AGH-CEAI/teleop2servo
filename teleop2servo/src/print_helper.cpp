@@ -10,17 +10,18 @@ namespace teleop2servo {
 std::string PrintHelper::build_teleop_msg_layout_and_instructions(TeleopDevice teleop_device,
                                                                   ControlMode control_mode,
                                                                   SpeedMode speed_mode,
-                                                                  bool device_blocked) {
+                                                                  bool device_blocked,
+                                                                  bool homing) {
   std::ostringstream oss;
 
-  oss << build_banner(teleop_device) << build_status(control_mode, speed_mode, device_blocked);
+  oss << build_banner(teleop_device) << build_status(control_mode, speed_mode, device_blocked, homing);
 
   switch (teleop_device) {
     case TeleopDevice::GAMEPAD:
-      oss << build_gamepad_instructions(control_mode, device_blocked);
+      oss << build_gamepad_instructions(control_mode, device_blocked, homing);
       break;
     case TeleopDevice::KEYBOARD:
-      oss << build_keyboard_instructions(control_mode, device_blocked);
+      oss << build_keyboard_instructions(control_mode, device_blocked, homing);
       break;
     default:
       oss << Color::BOLD << "\n\nERROR: TeleopDevice with this name not found...\n" << Color::RESET;
@@ -30,7 +31,10 @@ std::string PrintHelper::build_teleop_msg_layout_and_instructions(TeleopDevice t
   return oss.str();
 }
 
-std::string PrintHelper::build_status(ControlMode control_mode, SpeedMode speed_mode, bool device_blocked) {
+std::string PrintHelper::build_status(ControlMode control_mode,
+                                      SpeedMode speed_mode,
+                                      bool device_blocked,
+                                      bool homing) {
   static constexpr std::size_t BOX_INNER_WIDTH = 70;
 
   std::string plain;
@@ -41,7 +45,11 @@ std::string PrintHelper::build_status(ControlMode control_mode, SpeedMode speed_
   };
 
   add("  STATUS: ");
-  add(device_blocked ? "BLOCKED" : "READY", device_blocked ? Color::RED : Color::GREEN);
+  if (homing) {
+    add("HOMING", Color::BLUE);
+  } else {
+    add(device_blocked ? "BLOCKED" : "READY", device_blocked ? Color::RED : Color::GREEN);
+  }
   add("      MODE: ");
   add(std::string(to_string(control_mode)), Color::CYAN);
   add("      SPEED: ");
@@ -95,12 +103,14 @@ std::string PrintHelper::build_footer() {
   return oss.str();
 }
 
-std::string PrintHelper::build_gamepad_instructions(ControlMode control_mode, bool device_blocked) {
+std::string PrintHelper::build_gamepad_instructions(ControlMode control_mode, bool device_blocked, bool homing) {
   std::ostringstream oss;
 
   oss << build_gamepad_header();
 
-  if (device_blocked) {
+  if (homing) {
+    oss << build_gamepad_homing_info();
+  } else if (device_blocked) {
     oss << build_gamepad_safety_procedure();
   } else if (control_mode == ControlMode::JOINT) {
     oss << build_gamepad_joint_instructions();
@@ -123,7 +133,7 @@ std::string PrintHelper::build_gamepad_header() {
         .---------------------------------.
       .'                                   '.
      /  LEFT D-PAD              RIGHT MOUSE  \
-    /    [↑] [↓]      < ON >      (X / Y)     \
+    /    [↑] [↓]     [<] ON [>]   (X / Y)     \
     |    [←] [→]                              |
     |                             )"
       << Color::YELLOW << "Y" << Color::RESET << R"(           |
@@ -139,8 +149,18 @@ std::string PrintHelper::build_gamepad_header() {
       << "CONTROLS:\n"
       << "  " << Color::RED << "B" << Color::RESET << ": Block gamepad\n"
       << "  " << Color::CYAN << "X" << Color::RESET << ": Switch Mode (JOINT/BASE/TOOL)\n"
-      << "  " << Color::YELLOW << "Y" << Color::RESET << ": Switch Speed (STEP/CONT 5%-100%)"
+      << "  " << Color::YELLOW << "Y" << Color::RESET << ": Switch Speed (STEP/CONT 5%-100%)\n"
+      << "  " << Color::BLUE << "[>]" << Color::RESET << ": Go home (right arrow next to ON)"
       << "\n---------------------------\n";
+
+  return oss.str();
+}
+
+std::string PrintHelper::build_gamepad_homing_info() {
+  std::ostringstream oss;
+
+  oss << "GOING HOME... (Servo stopped, MoveIt is moving the robot)\n"
+      << "Abort: (press) " << Color::RED << "B" << Color::RESET << " - blocks the gamepad";
 
   return oss.str();
 }
@@ -181,12 +201,14 @@ std::string PrintHelper::build_gamepad_twist_instructions() {
   return oss.str();
 }
 
-std::string PrintHelper::build_keyboard_instructions(ControlMode control_mode, bool device_blocked) {
+std::string PrintHelper::build_keyboard_instructions(ControlMode control_mode, bool device_blocked, bool homing) {
   std::ostringstream oss;
 
   oss << build_keyboard_header();
 
-  if (device_blocked) {
+  if (homing) {
+    oss << build_keyboard_homing_info();
+  } else if (device_blocked) {
     oss << build_keyboard_safety_procedure();
   } else if (control_mode == ControlMode::JOINT) {
     oss << build_keyboard_joint_instructions();
@@ -206,7 +228,8 @@ std::string PrintHelper::build_keyboard_header() {
   oss << "CONTROLS:\n"
       << "  " << Color::RED << M::block_device << Color::RESET << ": Block keyboard\n"
       << "  " << Color::CYAN << M::switch_control_mode << Color::RESET << ": Switch Mode (JOINT/BASE/TOOL)\n"
-      << "  " << Color::YELLOW << M::switch_speed_mode << Color::RESET << ": Switch Speed (STEP/CONT 5%-100%)"
+      << "  " << Color::YELLOW << M::switch_speed_mode << Color::RESET << ": Switch Speed (STEP/CONT 5%-100%)\n"
+      << "  " << Color::BLUE << M::go_home << Color::RESET << ": Go home"
       << "\n---------------------------\n";
 
   return oss.str();
@@ -238,11 +261,21 @@ std::string PrintHelper::build_keyboard_layout(ControlMode control_mode) {
   const std::string speed_key = std::string(Color::YELLOW) + "[" + M::switch_speed_mode + "]" + Color::RESET;
   const std::string mode_key = std::string(Color::CYAN) + "[" + M::switch_control_mode + "]" + Color::RESET;
   const std::string block_key = std::string(Color::RED) + "[" + M::block_device + "]" + Color::RESET;
+  const std::string home_key = std::string(Color::BLUE) + "[" + M::go_home + "]" + Color::RESET;
 
   row("\n" + mode_key + speed_key + " ", "1234567890", " " + block_key);
   row("       ", "qwertyuiop");
   row("         ", "asdfghjkl");
-  row("            ", "zxcvbnm");
+  row("            ", "zxcvbnm", "      " + home_key);
+
+  return oss.str();
+}
+
+std::string PrintHelper::build_keyboard_homing_info() {
+  std::ostringstream oss;
+
+  oss << "GOING HOME... (Servo stopped, MoveIt is moving the robot)\n"
+      << "Abort: (press) " << Color::RED << KeyboardMapping::block_device << Color::RESET << " - blocks the keyboard";
 
   return oss.str();
 }

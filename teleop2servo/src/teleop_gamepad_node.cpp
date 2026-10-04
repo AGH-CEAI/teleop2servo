@@ -110,6 +110,10 @@ bool TeleopGamepadNode::check_state_buttons(const sensor_msgs::msg::Joy::SharedP
         teleop_publisher_.switch_speed_mode();
         return true;
 
+      case GamepadMapping::go_home:
+        teleop_publisher_.go_home();
+        return true;
+
       default:
         return false;
     }

@@ -9,6 +9,7 @@
 
 #include <geometry_msgs/msg/twist_stamped.hpp>
 #include <control_msgs/msg/joint_jog.hpp>
+#include "teleop2servo/home_manager.hpp"
 #include "teleop2servo/servo_manager.hpp"
 #include "teleop2servo/teleop_config.hpp"
 #include "teleop2servo/teleop_utils.hpp"
@@ -24,6 +25,7 @@ class TeleopPublisher {
   ControlMode get_control_mode() const;
   SpeedMode get_speed_mode() const;
   bool is_device_blocked() const;
+  bool is_homing() const;
   const TeleopConfig& get_config() const;
 
   void stop_motion();
@@ -32,6 +34,7 @@ class TeleopPublisher {
   void switch_speed_mode();
   void block_teleop_device();
   void unblock_teleop_device();
+  void go_home();
 
  private:
   template <typename T>
@@ -40,8 +43,10 @@ class TeleopPublisher {
   void setup_publishers();
   void setup_timers();
   void setup_servo_activation();
+  void setup_go_home();
 
   void on_shutdown();
+  void on_home_done(bool success);
 
   void publish_loop();
 
@@ -65,6 +70,7 @@ class TeleopPublisher {
   rclcpp::TimerBase::SharedPtr pub_timer_;
 
   std::unique_ptr<ServoManager> servo_manager_;
+  std::unique_ptr<HomeManager> home_manager_;
   rclcpp::PreShutdownCallbackHandle pre_shutdown_handle_;
 };
 

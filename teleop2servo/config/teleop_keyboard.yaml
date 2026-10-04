@@ -45,3 +45,15 @@ keyboard_teleop_node:
       # std_srvs/srv/Trigger, "" = skip
       start_servo_service: "/servo_node/start_servo"   # on unblock, after switching controllers
       stop_servo_service: "/servo_node/stop_servo"     # on block / Ctrl+C, before switching back
+
+    go_home:
+      enabled: true
+      server_timeout_s: 2.0                # waiting for the MoveGroup action server
+      move_group_action: "/move_action"    # moveit_msgs/action/MoveGroup
+      planning_group: "aegis_arm"
+      # [rad], in the order of joint_names (aegis.srdf "home" state)
+      joint_positions: [0.0, -2.094395, 2.094395, -1.570796, -1.570796, 0.0]
+      joint_tolerance: 0.001               # [rad]
+      max_velocity_scaling: 0.1            # (0, 1]
+      max_acceleration_scaling: 0.1        # (0, 1]
+      planning_time_s: 5.0

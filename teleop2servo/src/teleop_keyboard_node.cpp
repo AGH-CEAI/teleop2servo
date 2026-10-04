@@ -149,7 +149,7 @@ bool TeleopKeyboardNode::check_safety_procedure(char c, bool new_press) {
   return false;
 }
 
-// Returns true for state keys (block / mode / speed); they act only on a new press, not on repeats.
+// Returns true for state keys (block / mode / speed / home); they act only on a new press, not on repeats.
 bool TeleopKeyboardNode::check_state_buttons(char c, bool new_press) {
   switch (c) {
     case KeyboardMapping::block_device:
@@ -165,6 +165,11 @@ bool TeleopKeyboardNode::check_state_buttons(char c, bool new_press) {
     case KeyboardMapping::switch_speed_mode:
       if (new_press)
         teleop_publisher_.switch_speed_mode();
+      return true;
+
+    case KeyboardMapping::go_home:
+      if (new_press)
+        teleop_publisher_.go_home();
       return true;
 
     default:

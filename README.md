@@ -21,6 +21,7 @@ ROS 2 teleoperation node for controlling a robot using MoveIt Servo with various
 - **Speed modes:** `STEP` (one fixed step per press) and continuous `CONT` at 5 / 10 / 25 / 50 / 75 / 100 % of the configured maximum.
 - **Safe by default:** the device starts **blocked** and has to be unblocked explicitly; blocking it again stops the motion immediately.
 - **Optional Servo activation:** on unblock, switch controllers and call `start_servo`; on block or Ctrl+C, stop Servo and restore the original controllers.
+- **Go home:** one button moves the robot to a joint position set in the YAML, planned and executed by MoveIt.
 - **Terminal UI:** live status (blocked/ready, mode, speed) and the controls for the current mode.
 
 ## Requirements
@@ -93,6 +94,29 @@ servo_activation:
 
 Use `ros2 control list_controllers` to see which controllers your robot provides and which one Servo's `command_out_topic` points to.
 
+## Go home
+
+Press **`[>]`** (right arrow next to ON) on the gamepad or **`?`** on the keyboard while the device is unblocked:
+
+1. Motion stops, Servo is stopped and the initial controllers are restored (as on block, see [MoveIt Servo activation](#moveit-servo-activation)).
+2. A `moveit_msgs/action/MoveGroup` goal with joint constraints for `go_home.joint_positions` is sent to `move_group`, which plans and executes the move (the same as `RobotDirector.joint_move()` in [aegis_ros](https://github.com/AGH-CEAI/aegis_ros)).
+3. When the move finishes (or fails), Servo is activated again and teleoperation continues.
+
+While homing the status shows `HOMING` and motion input is ignored. Blocking the device (`B` / `*`) cancels the move. Requires a running `move_group`.
+
+```yaml
+go_home:
+  enabled: true
+  server_timeout_s: 2.0
+  move_group_action: "/move_action"
+  planning_group: "aegis_arm"
+  joint_positions: [0.0, -2.094395, 2.094395, -1.570796, -1.570796, 0.0]  # [rad], order of joint_names
+  joint_tolerance: 0.001
+  max_velocity_scaling: 0.1
+  max_acceleration_scaling: 0.1
+  planning_time_s: 5.0
+```
+
 ## ROS interface
 
 | Type                      | Name (default)                                      | Message / service                              |
@@ -102,6 +126,7 @@ Use `ros2 control list_controllers` to see which controllers your robot provides
 | Subscriber (gamepad)      | `/joy`                                              | `sensor_msgs/msg/Joy`                          |
 | Service client (optional) | `/controller_manager/switch_controller`             | `controller_manager_msgs/srv/SwitchController` |
 | Service client (optional) | `/servo_node/start_servo`, `/servo_node/stop_servo` | `std_srvs/srv/Trigger`                         |
+| Action client (optional)  | `/move_action`                                      | `moveit_msgs/action/MoveGroup`                 |
 
 ## Parameters
 
@@ -121,6 +146,7 @@ Default configurations: [`config/teleop_keyboard.yaml`](teleop2servo/config/tele
 | `twist_lin_step` / `twist_lin_cont_max` | `0.1` / `0.5`              | Linear command in `STEP` / at `CONT 100%`               |
 | `twist_ang_step` / `twist_ang_cont_max` | `0.1` / `0.8`              | Angular command in `STEP` / at `CONT 100%`              |
 | `servo_activation.*`                    | `enabled: true`            | See [MoveIt Servo activation](#moveit-servo-activation) |
+| `go_home.*`                             | `enabled: true`            | See [Go home](#go-home)                                 |
 
 Velocity values are normalized commands, scaled by Servo's `scale.*` parameters.
 
