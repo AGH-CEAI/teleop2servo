@@ -30,9 +30,9 @@ ROS 2 teleoperation node for controlling a robot using MoveIt Servo with various
 ## Installation
 
 ```bash
-cd ~/ros2_ws/src
+cd ~/ceai_ws/src
 git clone https://github.com/AGH-CEAI/teleop2servo.git
-cd ~/ros2_ws
+cd ~/ceai_ws
 rosdep install --from-paths src/teleop2servo --ignore-src -y
 colcon build --symlink-install --packages-select teleop2servo
 source install/setup.bash
@@ -57,8 +57,8 @@ source install/setup.bash
 To run a node directly with your own parameters:
 
 ```bash
-ros2 run teleop2servo teleop_keyboard_node --ros-args --params-file <path>/teleop_keyboard.yaml
-ros2 run teleop2servo teleop_gamepad_node_exec --ros-args --params-file <path>/teleop_gamepad.yaml  # needs joy_node
+ros2 run teleop2servo teleop_keyboard_node --ros-args --params-file ~/ceai_ws/src/teleop2servo/teleop2servo/config/teleop_keyboard.yaml
+ros2 run teleop2servo teleop_gamepad_node_exec --ros-args --params-file ~/ceai_ws/src/teleop2servo/teleop2servo/config/teleop_gamepad.yaml  # needs joy_node
 ```
 
 ## Controls
@@ -69,10 +69,10 @@ The current controls are always printed in the terminal; the tables below are a 
 
 With `servo_activation.enabled: true` the node manages Servo for you:
 
-| Event | Action |
-|---|---|
-| Device unblocked | switch controllers (`deactivate_controllers` → `activate_controllers`), then call `start_servo` |
-| Device blocked / Ctrl+C | call `stop_servo`, then switch the controllers back |
+| Event                   | Action                                                                                          |
+| ----------------------- | ----------------------------------------------------------------------------------------------- |
+| Device unblocked        | switch controllers (`deactivate_controllers` → `activate_controllers`), then call `start_servo` |
+| Device blocked / Ctrl+C | call `stop_servo`, then switch the controllers back                                             |
 
 If a service is unavailable or fails, the device stays blocked and the error is shown in the terminal. Set `enabled: false` if Servo and the controllers are managed elsewhere. To skip a single step, set its service name to `""`.
 
@@ -92,13 +92,13 @@ Use `ros2 control list_controllers` to see which controllers your robot provides
 
 ## ROS interface
 
-| Type | Name (default) | Message / service |
-|---|---|---|
-| Publisher | `/servo_node/delta_joint_cmds` | `control_msgs/msg/JointJog` |
-| Publisher | `/servo_node/delta_twist_cmds` | `geometry_msgs/msg/TwistStamped` |
-| Subscriber (gamepad) | `/joy` | `sensor_msgs/msg/Joy` |
-| Service client (optional) | `/controller_manager/switch_controller` | `controller_manager_msgs/srv/SwitchController` |
-| Service client (optional) | `/servo_node/start_servo`, `/servo_node/stop_servo` | `std_srvs/srv/Trigger` |
+| Type                      | Name (default)                                      | Message / service                              |
+| ------------------------- | --------------------------------------------------- | ---------------------------------------------- |
+| Publisher                 | `/servo_node/delta_joint_cmds`                      | `control_msgs/msg/JointJog`                    |
+| Publisher                 | `/servo_node/delta_twist_cmds`                      | `geometry_msgs/msg/TwistStamped`               |
+| Subscriber (gamepad)      | `/joy`                                              | `sensor_msgs/msg/Joy`                          |
+| Service client (optional) | `/controller_manager/switch_controller`             | `controller_manager_msgs/srv/SwitchController` |
+| Service client (optional) | `/servo_node/start_servo`, `/servo_node/stop_servo` | `std_srvs/srv/Trigger`                         |
 
 ## Parameters
 
@@ -106,34 +106,34 @@ Default configurations: [`config/teleop_keyboard.yaml`](teleop2servo/config/tele
 
 ### Common
 
-| Parameter | Default | Description |
-|---|---|---|
-| `servo_publish_hz` | `250.0` | Command publishing rate |
-| `servo_ticks_per_policy_step` | `10` | Number of publish ticks a single `STEP` lasts |
-| `twist_topic` / `joint_topic` | `/servo_node/delta_*_cmds` | Servo input topics |
-| `queue_size` | `10` | Publisher queue size |
-| `base_frame_id` / `ee_frame_id` | `base_link` / `tool0` | Frames for `BASE` and `TOOL` modes |
-| `joint_names` | UR joint names | Joints commanded in `JOINT` mode |
-| `joint_vel_step` / `joint_vel_cont_max` | `0.1` / `0.8` | Joint command in `STEP` / at `CONT 100%` |
-| `twist_lin_step` / `twist_lin_cont_max` | `0.1` / `0.5` | Linear command in `STEP` / at `CONT 100%` |
-| `twist_ang_step` / `twist_ang_cont_max` | `0.1` / `0.8` | Angular command in `STEP` / at `CONT 100%` |
-| `servo_activation.*` | `enabled: true` | See [MoveIt Servo activation](#moveit-servo-activation) |
+| Parameter                               | Default                    | Description                                             |
+| --------------------------------------- | -------------------------- | ------------------------------------------------------- |
+| `servo_publish_hz`                      | `250.0`                    | Command publishing rate                                 |
+| `servo_ticks_per_policy_step`           | `10`                       | Number of publish ticks a single `STEP` lasts           |
+| `twist_topic` / `joint_topic`           | `/servo_node/delta_*_cmds` | Servo input topics                                      |
+| `queue_size`                            | `10`                       | Publisher queue size                                    |
+| `base_frame_id` / `ee_frame_id`         | `base_link` / `tool0`      | Frames for `BASE` and `TOOL` modes                      |
+| `joint_names`                           | UR joint names             | Joints commanded in `JOINT` mode                        |
+| `joint_vel_step` / `joint_vel_cont_max` | `0.1` / `0.8`              | Joint command in `STEP` / at `CONT 100%`                |
+| `twist_lin_step` / `twist_lin_cont_max` | `0.1` / `0.5`              | Linear command in `STEP` / at `CONT 100%`               |
+| `twist_ang_step` / `twist_ang_cont_max` | `0.1` / `0.8`              | Angular command in `STEP` / at `CONT 100%`              |
+| `servo_activation.*`                    | `enabled: true`            | See [MoveIt Servo activation](#moveit-servo-activation) |
 
 Velocity values are normalized commands, scaled by Servo's `scale.*` parameters.
 
 ### Keyboard
 
-| Parameter | Default | Description |
-|---|---|---|
-| `reading_keyboard_hz` | `250.0` | Keyboard polling rate |
-| `key_initial_timeout_s` | `0.55` | Must be greater than the system key-repeat delay |
-| `key_repeat_timeout_s` | `0.1` | Must be greater than the system key-repeat interval |
+| Parameter               | Default | Description                                         |
+| ----------------------- | ------- | --------------------------------------------------- |
+| `reading_keyboard_hz`   | `250.0` | Keyboard polling rate                               |
+| `key_initial_timeout_s` | `0.55`  | Must be greater than the system key-repeat delay    |
+| `key_repeat_timeout_s`  | `0.1`   | Must be greater than the system key-repeat interval |
 
 ### Gamepad
 
-| Parameter | Default | Description |
-|---|---|---|
-| `joy_topic` | `/joy` | Input topic from `joy_node` |
+| Parameter   | Default | Description                 |
+| ----------- | ------- | --------------------------- |
+| `joy_topic` | `/joy`  | Input topic from `joy_node` |
 
 ## Keyboard notes
 
@@ -153,7 +153,6 @@ pre-commit install
 prek install
 ```
 
----
 ## License
 
-[Apache 2.0](LICENSE)
+This repository is licensed under the Apache 2.0, see LICENSE for details.
