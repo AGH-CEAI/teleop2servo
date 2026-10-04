@@ -236,11 +236,12 @@ std::string PrintHelper::build_keyboard_layout(ControlMode control_mode) {
   };
 
   const std::string speed_key = std::string(Color::YELLOW) + "[" + M::switch_speed_mode + "]" + Color::RESET;
+  const std::string mode_key = std::string(Color::CYAN) + "[" + M::switch_control_mode + "]" + Color::RESET;
   const std::string block_key = std::string(Color::RED) + "[" + M::block_device + "]" + Color::RESET;
 
-  row("\n    " + speed_key, "1234567890", "   " + block_key);
-  row(std::string(Color::CYAN) + "[TAB]" + Color::RESET + "   ", "qwertyuiop");
-  row("          ", "asdfghjkl");
+  row("\n" + speed_key + mode_key +" ", "1234567890", " " + block_key);
+  row("       ", "qwertyuiop");
+  row("         ", "asdfghjkl");
   row("            ", "zxcvbnm");
 
   return oss.str();
