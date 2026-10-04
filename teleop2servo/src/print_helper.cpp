@@ -10,17 +10,19 @@ namespace teleop2servo {
 std::string PrintHelper::build_teleop_msg_layout_and_instructions(TeleopDevice teleop_device,
                                                                   ControlMode control_mode,
                                                                   SpeedMode speed_mode,
-                                                                  bool device_blocked) {
+                                                                  bool device_blocked,
+                                                                  bool input_paused) {
   std::ostringstream oss;
 
-  oss << build_banner(teleop_device) << build_status(control_mode, speed_mode, device_blocked);
+  oss << build_banner(teleop_device)
+      << build_status(teleop_device, control_mode, speed_mode, device_blocked, input_paused);
 
   switch (teleop_device) {
     case TeleopDevice::GAMEPAD:
       oss << build_gamepad_instructions(control_mode, device_blocked);
       break;
     case TeleopDevice::KEYBOARD:
-      oss << build_keyboard_instructions(control_mode, device_blocked);
+      oss << build_keyboard_instructions(control_mode, device_blocked, input_paused);
       break;
     default:
       oss << Color::BOLD << "\n\nERROR: TeleopDevice with this name not found...\n" << Color::RESET;
@@ -30,7 +32,11 @@ std::string PrintHelper::build_teleop_msg_layout_and_instructions(TeleopDevice t
   return oss.str();
 }
 
-std::string PrintHelper::build_status(ControlMode control_mode, SpeedMode speed_mode, bool device_blocked) {
+std::string PrintHelper::build_status(TeleopDevice teleop_device,
+                                      ControlMode control_mode,
+                                      SpeedMode speed_mode,
+                                      bool device_blocked,
+                                      bool input_paused) {
   static constexpr std::size_t BOX_INNER_WIDTH = 70;
 
   std::string plain;
@@ -41,7 +47,11 @@ std::string PrintHelper::build_status(ControlMode control_mode, SpeedMode speed_
   };
 
   add("  STATUS: ");
-  add(device_blocked ? "BLOCKED" : "READY", device_blocked ? Color::RED : Color::GREEN);
+  if (input_paused) {
+    add(teleop_device == TeleopDevice::KEYBOARD ? "CAPS LOCK ON" : "PAUSED", Color::RED);
+  } else {
+    add(device_blocked ? "BLOCKED" : "READY", device_blocked ? Color::RED : Color::GREEN);
+  }
   add("      MODE: ");
   add(std::string(to_string(control_mode)), Color::CYAN);
   add("      SPEED: ");
@@ -181,12 +191,14 @@ std::string PrintHelper::build_gamepad_twist_instructions() {
   return oss.str();
 }
 
-std::string PrintHelper::build_keyboard_instructions(ControlMode control_mode, bool device_blocked) {
+std::string PrintHelper::build_keyboard_instructions(ControlMode control_mode, bool device_blocked, bool input_paused) {
   std::ostringstream oss;
 
   oss << build_keyboard_header();
 
-  if (device_blocked) {
+  if (input_paused) {
+    oss << Color::RED << "Caps Lock is ON - turn it off to continue." << Color::RESET;
+  } else if (device_blocked) {
     oss << build_keyboard_safety_procedure();
   } else if (control_mode == ControlMode::JOINT) {
     oss << build_keyboard_joint_instructions();

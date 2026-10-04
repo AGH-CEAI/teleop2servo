@@ -2,6 +2,7 @@
 #define TELEOP2SERVO__KEYBOARD_READER_HPP_
 
 #include <atomic>
+#include <optional>
 
 #include <termios.h>
 
@@ -16,6 +17,9 @@ class KeyboardReader {
   void stop();
 
   bool read_key(char& c);
+
+  // Caps Lock LED state from /sys/class/leds; std::nullopt when no keyboard LED can be read.
+  std::optional<bool> caps_lock_on() const;
 
  private:
   termios orig_{};

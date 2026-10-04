@@ -1,5 +1,9 @@
 #include <fcntl.h>
+#include <filesystem>
+#include <fstream>
 #include <stdexcept>
+#include <string>
+#include <system_error>
 #include <termios.h>
 #include <unistd.h>
 
@@ -44,6 +48,29 @@ bool KeyboardReader::read_key(char& c) {
 
   const int n = ::read(fd_, &c, 1);
   return n == 1;
+}
+
+std::optional<bool> KeyboardReader::caps_lock_on() const {
+  bool led_found = false;
+  std::error_code ec;
+
+  for (const auto& entry : std::filesystem::directory_iterator("/sys/class/leds", ec)) {
+    if (entry.path().filename().string().find("::capslock") == std::string::npos)
+      continue;
+
+    std::ifstream file(entry.path() / "brightness");
+    int brightness = 0;
+    if (!(file >> brightness))
+      continue;
+
+    led_found = true;
+    if (brightness > 0)
+      return true;
+  }
+
+  if (!led_found)
+    return std::nullopt;
+  return false;
 }
 
 }  // namespace teleop2servo

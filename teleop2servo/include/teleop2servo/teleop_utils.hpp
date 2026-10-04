@@ -43,6 +43,7 @@ struct TeleopState {
   int remaining_step_ticks = 0;
   bool have_active_cmd{false};
   bool device_blocked{true};
+  bool input_paused{false};
 };
 
 constexpr double get_speed_val(SpeedMode m) {

@@ -24,6 +24,7 @@ class TeleopPublisher {
   ControlMode get_control_mode() const;
   SpeedMode get_speed_mode() const;
   bool is_device_blocked() const;
+  bool is_input_paused() const;
   const TeleopConfig& get_config() const;
 
   void stop_motion();
@@ -32,6 +33,7 @@ class TeleopPublisher {
   void switch_speed_mode();
   void block_teleop_device();
   void unblock_teleop_device();
+  void set_input_paused(bool paused);
 
  private:
   template <typename T>

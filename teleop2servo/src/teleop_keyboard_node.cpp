@@ -5,6 +5,7 @@
 #include <memory>
 #include <optional>
 #include <string>
+#include <thread>
 #include <utility>
 
 #include <rclcpp/rclcpp.hpp>
@@ -17,7 +18,21 @@ TeleopKeyboardNode::TeleopKeyboardNode(const rclcpp::NodeOptions& options)
     : Node("keyboard_teleop_node", options), teleop_publisher_(*this, TeleopDevice::KEYBOARD) {
   load_keyboard_parameters();
   keyboard_.start();
+
+  const bool caps_lock_detection = keyboard_.caps_lock_on().has_value();
+  if (!caps_lock_detection && !confirm_without_caps_lock_detection()) {
+    RCLCPP_INFO(get_logger(), "Aborted by the operator.");
+    rclcpp::shutdown();
+    return;
+  }
+
   setup_timers();
+
+  if (caps_lock_detection) {
+    caps_lock_timer_ =
+        this->create_wall_timer(std::chrono::milliseconds(100), std::bind(&TeleopKeyboardNode::check_caps_lock, this));
+    check_caps_lock();
+  }
 }
 
 TeleopKeyboardNode::~TeleopKeyboardNode() {
@@ -42,6 +57,31 @@ void TeleopKeyboardNode::setup_timers() {
                                        std::bind(&TeleopKeyboardNode::handle_key_input, this));
 }
 
+bool TeleopKeyboardNode::confirm_without_caps_lock_detection() {
+  RCLCPP_WARN(get_logger(),
+              "%sCaps Lock state cannot be read on this system (no keyboard LED in /sys/class/leds).\n"
+              "For proper work of the app Caps Lock must be OFF.\n"
+              "Continue? [y/n]%s",
+              Color::YELLOW, Color::RESET);
+
+  char c;
+  while (rclcpp::ok()) {
+    if (keyboard_.read_key(c)) {
+      if (c == 'y' || c == 'Y')
+        return true;
+      if (c == 'n' || c == 'N')
+        return false;
+    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+  }
+  return false;
+}
+
+void TeleopKeyboardNode::check_caps_lock() {
+  if (const auto caps_lock = keyboard_.caps_lock_on())
+    teleop_publisher_.set_input_paused(*caps_lock);
+}
+
 std::optional<char> TeleopKeyboardNode::read_last_key() {
   std::optional<char> last;
   char c;
@@ -55,6 +95,15 @@ std::optional<char> TeleopKeyboardNode::read_last_key() {
 // system auto-repeat delay (~0.5 s), a stream of repeats (~30 ms apart).
 // Press, hold and release are reconstructed from that timing.
 void TeleopKeyboardNode::handle_key_input() {
+  // Caps Lock is on: drop all input until it is turned off.
+  if (teleop_publisher_.is_input_paused()) {
+    read_last_key();
+    held_key_.reset();
+    key_repeat_seen_ = false;
+    pending_tap_ = false;
+    return;
+  }
+
   const auto now = SteadyClock::now();
   const double since_last_key = std::chrono::duration<double>(now - last_key_time_).count();
 
@@ -243,7 +292,8 @@ void TeleopKeyboardNode::create_cmd_twist(char c,
 int main(int argc, char** argv) {
   rclcpp::init(argc, argv);
   auto node = std::make_shared<teleop2servo::TeleopKeyboardNode>();
-  rclcpp::spin(node);
+  if (rclcpp::ok())
+    rclcpp::spin(node);
   rclcpp::shutdown();
   return 0;
 }

@@ -111,6 +111,11 @@ bool TeleopPublisher::is_device_blocked() const {
   return state_.device_blocked;
 }
 
+bool TeleopPublisher::is_input_paused() const {
+  std::lock_guard<std::mutex> lock(state_mutex_);
+  return state_.input_paused;
+}
+
 const TeleopConfig& TeleopPublisher::get_config() const {
   return config_;
 }
@@ -193,9 +198,21 @@ void TeleopPublisher::unblock_teleop_device() {
   print_instructions();
 }
 
+void TeleopPublisher::set_input_paused(bool paused) {
+  {
+    std::lock_guard<std::mutex> lock(state_mutex_);
+    if (state_.input_paused == paused)
+      return;
+
+    stop_motion_locked();
+    state_.input_paused = paused;
+  }
+  print_instructions();
+}
+
 void TeleopPublisher::print_instructions() {
-  std::string str = PrintHelper::build_teleop_msg_layout_and_instructions(teleop_device_, get_control_mode(),
-                                                                          get_speed_mode(), is_device_blocked());
+  std::string str = PrintHelper::build_teleop_msg_layout_and_instructions(
+      teleop_device_, get_control_mode(), get_speed_mode(), is_device_blocked(), is_input_paused());
   RCLCPP_INFO(node_.get_logger(), "%s", str.c_str());
 }
 
