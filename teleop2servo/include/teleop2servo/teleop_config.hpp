@@ -34,6 +34,15 @@ struct HomeConfig {
   double planning_time_s = 5.0;
 };
 
+struct GripperConfig {
+  bool enabled = false;
+  std::string action_name = "/gripper_action_controller/gripper_cmd";
+
+  double open_position = 0.025;
+  double close_position = 0.0;
+  double max_effort = 0.0;
+};
+
 struct TeleopConfig {
   double servo_publish_hz = 250.0;
   int servo_ticks_per_policy_step = 10;
@@ -60,6 +69,7 @@ struct TeleopConfig {
 
   ServoActivationConfig servo_activation;
   HomeConfig go_home;
+  GripperConfig gripper;
 };
 
 struct GamepadConfig {

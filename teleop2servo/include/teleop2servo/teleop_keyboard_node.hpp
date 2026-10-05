@@ -39,6 +39,7 @@ class TeleopKeyboardNode : public rclcpp::Node {
 
   bool check_safety_procedure(char c, bool new_press);
   bool check_state_buttons(char c, bool new_press);
+  bool check_gripper_button(char c, bool autorepeat);
 
   // ==== active command creation ====
   void create_cmd_joint(char c, const SpeedMode speed_mode, ActiveCmd& cmd) const;

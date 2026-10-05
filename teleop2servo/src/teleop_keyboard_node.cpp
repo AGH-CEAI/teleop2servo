@@ -114,6 +114,9 @@ void TeleopKeyboardNode::process_key(char c, bool new_press, bool autorepeat) {
   if (check_state_buttons(c, new_press))
     return;
 
+  if (check_gripper_button(c, autorepeat))
+    return;
+
   const ControlMode control_mode = teleop_publisher_.get_control_mode();
   const SpeedMode speed_mode = teleop_publisher_.get_speed_mode();
 
@@ -175,6 +178,16 @@ bool TeleopKeyboardNode::check_state_buttons(char c, bool new_press) {
     default:
       return false;
   }
+}
+
+// Toggles on every tap, also on a quick re-tap of the same key; holding the key toggles only once.
+bool TeleopKeyboardNode::check_gripper_button(char c, bool autorepeat) {
+  if (c != KeyboardMapping::toggle_gripper)
+    return false;
+
+  if (!autorepeat)
+    teleop_publisher_.toggle_gripper();
+  return true;
 }
 
 void TeleopKeyboardNode::create_cmd_joint(char c, const SpeedMode speed_mode, ActiveCmd& cmd) const {

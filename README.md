@@ -22,6 +22,7 @@ ROS 2 teleoperation node for controlling a robot using MoveIt Servo with various
 - **Safe by default:** the device starts **blocked** and has to be unblocked explicitly; blocking it again stops the motion immediately.
 - **Optional Servo activation:** on unblock, switch controllers and call `start_servo`; on block or Ctrl+C, stop Servo and restore the original controllers.
 - **Go home:** one button moves the robot to a joint position set in the YAML, planned and executed by MoveIt.
+- **Gripper control:** one key (gamepad `A`, keyboard `g`) opens / closes the gripper through a `control_msgs/action/GripperCommand` action.
 - **Terminal UI:** live status (blocked/ready, mode, speed) and the controls for the current mode.
 
 ## Requirements
@@ -117,6 +118,21 @@ go_home:
   planning_time_s: 5.0
 ```
 
+## Gripper control
+
+With `gripper.enabled: true`, gamepad `A` or keyboard `g` toggles the gripper between `open_position` and `close_position`.
+
+Example for the [Robotiq Hand-E](https://github.com/AGH-CEAI/robotiq_hande_driver) (finger joint, 0.025 m = fully open):
+
+```yaml
+gripper:
+  enabled: true
+  action_name: "/gripper_action_controller/gripper_cmd"
+  open_position: 0.025
+  close_position: 0.0   # e.g. 0.01 to stop at a 2 cm gap
+  max_effort: 0.0
+```
+
 ## ROS interface
 
 | Type                      | Name (default)                                      | Message / service                              |
@@ -127,6 +143,7 @@ go_home:
 | Service client (optional) | `/controller_manager/switch_controller`             | `controller_manager_msgs/srv/SwitchController` |
 | Service client (optional) | `/servo_node/start_servo`, `/servo_node/stop_servo` | `std_srvs/srv/Trigger`                         |
 | Action client (optional)  | `/move_action`                                      | `moveit_msgs/action/MoveGroup`                 |
+| Action client (optional)  | `/gripper_action_controller/gripper_cmd`            | `control_msgs/action/GripperCommand`           |
 
 ## Parameters
 
@@ -147,6 +164,7 @@ Default configurations: [`config/teleop_keyboard.yaml`](teleop2servo/config/tele
 | `twist_ang_step` / `twist_ang_cont_max` | `0.1` / `0.8`              | Angular command in `STEP` / at `CONT 100%`              |
 | `servo_activation.*`                    | `enabled: true`            | See [MoveIt Servo activation](#moveit-servo-activation) |
 | `go_home.*`                             | `enabled: true`            | See [Go home](#go-home)                                 |
+| `gripper.*`                             | `enabled: true`            | See [Gripper control](#gripper-control)                 |
 
 Velocity values are normalized commands, scaled by Servo's `scale.*` parameters.
 

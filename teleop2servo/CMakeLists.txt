@@ -24,6 +24,7 @@ add_library(
   src/teleop_publisher.cpp
   src/servo_manager.cpp
   src/home_manager.cpp
+  src/gripper_manager.cpp
   src/print_helper.cpp)
 
 target_include_directories(
@@ -62,6 +63,7 @@ add_executable(
   src/teleop_publisher.cpp
   src/servo_manager.cpp
   src/home_manager.cpp
+  src/gripper_manager.cpp
   src/print_helper.cpp)
 
 target_include_directories(

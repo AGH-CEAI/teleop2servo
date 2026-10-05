@@ -1,4 +1,4 @@
-import os
+from pathlib import Path
 
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
@@ -9,7 +9,7 @@ from launch_ros.descriptions import ComposableNode
 
 
 def generate_launch_description():
-    config_dir = os.path.join(get_package_share_directory("teleop2servo"), "config")
+    config_dir = Path(get_package_share_directory("teleop2servo")) / "config"
 
     teleop_device_arg = DeclareLaunchArgument(
         "teleop_device",
@@ -33,7 +33,7 @@ def generate_launch_description():
                 package="teleop2servo",
                 plugin="teleop2servo::TeleopGamepadNode",
                 name="gamepad_teleop_node",
-                parameters=[os.path.join(config_dir, "teleop_gamepad.yaml")],
+                parameters=[config_dir / "teleop_gamepad.yaml"],
             ),
         ],
     )
@@ -44,7 +44,7 @@ def generate_launch_description():
         name="keyboard_teleop_node",
         output="screen",
         emulate_tty=True,
-        parameters=[os.path.join(config_dir, "teleop_keyboard.yaml")],
+        parameters=[config_dir / "teleop_keyboard.yaml"],
         condition=use_keyboard,
     )
 

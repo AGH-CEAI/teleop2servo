@@ -29,6 +29,7 @@ enum class TeleopDevice {
 enum class ControlMode { JOINT, BASE, TOOL };
 enum class SpeedMode { STEP, CONT_P5, CONT_P10, CONT_P25, CONT_P50, CONT_P75, CONT_P100 };
 enum class ActiveCmdType { NONE, JOINT, TWIST };
+enum class GripperState { DISABLED, OPEN, CLOSED };
 
 struct ActiveCmd {
   ActiveCmdType type{ActiveCmdType::NONE};
@@ -128,6 +129,19 @@ constexpr std::string_view to_string(SpeedMode m) {
       return "CONT 75%";
     case SpeedMode::CONT_P100:
       return "CONT 100%";
+    default:
+      return "UNKNOWN";
+  }
+}
+
+constexpr std::string_view to_string(GripperState s) {
+  switch (s) {
+    case GripperState::DISABLED:
+      return "DISABLED";
+    case GripperState::OPEN:
+      return "OPEN";
+    case GripperState::CLOSED:
+      return "CLOSED";
     default:
       return "UNKNOWN";
   }

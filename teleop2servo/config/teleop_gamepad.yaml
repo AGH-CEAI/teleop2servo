@@ -55,3 +55,11 @@ gamepad_teleop_node:
       max_velocity_scaling: 0.1            # (0, 1]
       max_acceleration_scaling: 0.1        # (0, 1]
       planning_time_s: 5.0
+
+    # Gripper (control_msgs/action/GripperCommand): A toggles open / close while the device is unblocked.
+    gripper:
+      enabled: true                    # false = no gripper control
+      action_name: "/gripper_action_controller/gripper_cmd"
+      open_position: 0.025             # [m] finger joint position when open (Hand-E: 0.025 = fully open)
+      close_position: 0.0              # [m] finger joint position when closed (Hand-E: 0.0 = fully closed)
+      max_effort: 0.0                  # [N] sent in the goal
