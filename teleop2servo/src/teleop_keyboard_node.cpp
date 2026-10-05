@@ -61,7 +61,6 @@ void TeleopKeyboardNode::handle_key_input() {
   const double since_last_key = std::chrono::duration<double>(now - last_key_time_).count();
 
   // A key arrived: classify it as a new press or an auto-repeat of the held key.
-  // Classi
   if (const auto key = read_last_key()) {
     const bool new_press = !held_key_ || *held_key_ != *key;
     const bool autorepeat = !new_press && since_last_key < keyboard_config_.key_repeat_timeout_s;

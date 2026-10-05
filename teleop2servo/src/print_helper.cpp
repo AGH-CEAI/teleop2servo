@@ -11,10 +11,11 @@ std::string PrintHelper::build_teleop_msg_layout_and_instructions(TeleopDevice t
                                                                   ControlMode control_mode,
                                                                   SpeedMode speed_mode,
                                                                   bool device_blocked,
+                                                                  GripperState gripper_state,
                                                                   bool homing) {
   std::ostringstream oss;
   const bool gripper_enabled = gripper_state != GripperState::DISABLED;
-  oss << build_banner(teleop_device) << build_status(control_mode, speed_mode, device_blocked, gripper_enabled, homing);
+  oss << build_banner(teleop_device) << build_status(control_mode, speed_mode, device_blocked, gripper_state, homing);
 
   switch (teleop_device) {
     case TeleopDevice::GAMEPAD:
@@ -34,8 +35,9 @@ std::string PrintHelper::build_teleop_msg_layout_and_instructions(TeleopDevice t
 std::string PrintHelper::build_status(ControlMode control_mode,
                                       SpeedMode speed_mode,
                                       bool device_blocked,
-                                      GripperState gripper_state) {
-  static constexpr std::size_t BOX_INNER_WIDTH = 72;
+                                      GripperState gripper_state,
+                                      bool homing) {
+  static constexpr std::size_t BOX_INNER_WIDTH = 70;
 
   std::string plain;
   std::string colored;
@@ -50,12 +52,12 @@ std::string PrintHelper::build_status(ControlMode control_mode,
   } else {
     add(device_blocked ? "BLOCKED" : "READY", device_blocked ? Color::RED : Color::GREEN);
   }
-  add("      MODE: ");
+  add("   MODE: ");
   add(std::string(to_string(control_mode)), Color::CYAN);
-  add("      SPEED: ");
+  add("   SPEED: ");
   add(std::string(to_string(speed_mode)), Color::YELLOW);
   if (gripper_state != GripperState::DISABLED) {
-    add("    GRIPPER: ");
+    add("   GRIPPER: ");
     add(std::string(to_string(gripper_state)), Color::GREEN);
   }
 
@@ -156,10 +158,11 @@ std::string PrintHelper::build_gamepad_header(bool gripper_enabled) {
       << "CONTROLS:\n"
       << "  " << Color::RED << "B" << Color::RESET << ": Block gamepad\n"
       << "  " << Color::CYAN << "X" << Color::RESET << ": Switch Mode (JOINT/BASE/TOOL)\n"
-      << "  " << Color::YELLOW << "Y" << Color::RESET << ": Switch Speed (STEP/CONT 5%-100%)\n" if (gripper_enabled) oss
-      << "\n  " << Color::GREEN << "A" << Color::RESET << ": Open / Close gripper";
-  << "  " << Color::BLUE << "[>]" << Color::RESET << ": Go home (right arrow next to ON)"
-  << "\n---------------------------\n";
+      << "  " << Color::YELLOW << "Y" << Color::RESET << ": Switch Speed (STEP/CONT 5%-100%)\n"
+      << "  " << Color::BLUE << "[>]" << Color::RESET << ": Go home (right arrow next to ON)";
+  if (gripper_enabled)
+    oss << "\n  " << Color::GREEN << "A" << Color::RESET << ": Open / Close gripper";
+  oss << "\n---------------------------\n";
 
   return oss.str();
 }
@@ -239,11 +242,11 @@ std::string PrintHelper::build_keyboard_header(bool gripper_enabled) {
   oss << "CONTROLS:\n"
       << "  " << Color::RED << M::block_device << Color::RESET << ": Block keyboard\n"
       << "  " << Color::CYAN << M::switch_control_mode << Color::RESET << ": Switch Mode (JOINT/BASE/TOOL)\n"
-      << "  " << Color::YELLOW << M::switch_speed_mode << Color::RESET
-      << ": Switch Speed (STEP/CONT 5%-100%)\n" if (gripper_enabled) oss << "\n  " << Color::GREEN << M::toggle_gripper
-      << Color::RESET << ": Open / Close gripper";
-  << "  " << Color::BLUE << M::go_home << Color::RESET << ": Go home"
-  << "\n---------------------------\n";
+      << "  " << Color::YELLOW << M::switch_speed_mode << Color::RESET << ": Switch Speed (STEP/CONT 5%-100%)\n"
+      << "  " << Color::BLUE << M::go_home << Color::RESET << ": Go home";
+  if (gripper_enabled)
+    oss << "\n  " << Color::GREEN << M::toggle_gripper << Color::RESET << ": Open / Close gripper";
+  oss << "\n---------------------------\n";
 
   return oss.str();
 }

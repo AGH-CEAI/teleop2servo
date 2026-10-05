@@ -122,275 +122,277 @@ void TeleopPublisher::setup_go_home() {
   }
 
   home_manager_ = std::make_unique<HomeManager>(node_, home, config_.joint_names);
+}
 
-  void TeleopPublisher::setup_gripper() {
-    if (config_.gripper.enabled)
-      gripper_manager_ = std::make_unique<GripperManager>(node_, config_.gripper);
+void TeleopPublisher::setup_gripper() {
+  if (config_.gripper.enabled)
+    gripper_manager_ = std::make_unique<GripperManager>(node_, config_.gripper);
+}
+
+void TeleopPublisher::on_shutdown() {
+  stop_motion();
+
+  if (home_manager_)
+    home_manager_->cancel();
+
+  if (servo_manager_)
+    servo_manager_->deactivate();
+}
+
+ControlMode TeleopPublisher::get_control_mode() const {
+  std::lock_guard<std::mutex> lock(state_mutex_);
+  return state_.control_mode;
+}
+
+SpeedMode TeleopPublisher::get_speed_mode() const {
+  std::lock_guard<std::mutex> lock(state_mutex_);
+  return state_.speed_mode;
+}
+
+bool TeleopPublisher::is_device_blocked() const {
+  std::lock_guard<std::mutex> lock(state_mutex_);
+  return state_.device_blocked;
+}
+
+bool TeleopPublisher::is_homing() const {
+  std::lock_guard<std::mutex> lock(state_mutex_);
+  return state_.homing;
+}
+
+GripperState TeleopPublisher::get_gripper_state() const {
+  return gripper_manager_ ? gripper_manager_->get_state() : GripperState::DISABLED;
+}
+
+const TeleopConfig& TeleopPublisher::get_config() const {
+  return config_;
+}
+
+void TeleopPublisher::set_active_cmd(const ActiveCmd& cmd) {
+  std::lock_guard<std::mutex> lock(state_mutex_);
+
+  // Servo is stopped while MoveIt drives the robot home.
+  if (state_.homing)
+    return;
+
+  if (cmd.type == ActiveCmdType::NONE) {
+    if (state_.remaining_step_ticks > 0)
+      return;
+
+    state_.active_cmd = cmd;
+    return;
   }
 
-  void TeleopPublisher::on_shutdown() {
-    stop_motion();
-
-    if (home_manager_)
-      home_manager_->cancel();
-
-    if (servo_manager_)
-      servo_manager_->deactivate();
+  state_.have_active_cmd = true;
+  if (state_.speed_mode == SpeedMode::STEP) {
+    state_.remaining_step_ticks = config_.servo_ticks_per_policy_step;
+  } else {
+    state_.remaining_step_ticks = 0;
   }
 
-  ControlMode TeleopPublisher::get_control_mode() const {
+  state_.active_cmd = cmd;
+}
+
+void TeleopPublisher::stop_motion_locked() {
+  state_.active_cmd = ActiveCmd();
+  state_.have_active_cmd = true;  // once send zeros
+  state_.remaining_step_ticks = 0;
+}
+
+void TeleopPublisher::stop_motion() {
+  std::lock_guard<std::mutex> lock(state_mutex_);
+  stop_motion_locked();
+}
+
+void TeleopPublisher::switch_control_mode() {
+  {
     std::lock_guard<std::mutex> lock(state_mutex_);
-    return state_.control_mode;
+    stop_motion_locked();
+    state_.control_mode = next(state_.control_mode);
+  }
+  print_instructions();
+}
+
+void TeleopPublisher::switch_speed_mode() {
+  {
+    std::lock_guard<std::mutex> lock(state_mutex_);
+    stop_motion_locked();
+    state_.speed_mode = next(state_.speed_mode);
+  }
+  print_instructions();
+}
+
+void TeleopPublisher::block_teleop_device() {
+  bool was_homing = false;
+  {
+    std::lock_guard<std::mutex> lock(state_mutex_);
+    stop_motion_locked();
+    state_.device_blocked = true;
+    was_homing = std::exchange(state_.homing, false);
   }
 
-  SpeedMode TeleopPublisher::get_speed_mode() const {
-    std::lock_guard<std::mutex> lock(state_mutex_);
-    return state_.speed_mode;
+  if (was_homing)
+    home_manager_->cancel();
+
+  if (servo_manager_)
+    servo_manager_->deactivate();
+
+  print_instructions();
+}
+
+void TeleopPublisher::unblock_teleop_device() {
+  if (servo_manager_ && !servo_manager_->activate()) {
+    RCLCPP_ERROR(node_.get_logger(), "MoveIt Servo activation failed, device stays blocked.");
+    print_instructions();
+    return;
   }
 
-  bool TeleopPublisher::is_device_blocked() const {
+  {
     std::lock_guard<std::mutex> lock(state_mutex_);
-    return state_.device_blocked;
+    stop_motion_locked();
+    state_.device_blocked = false;
+  }
+  print_instructions();
+}
+
+// Servo is stopped and the initial controllers restored, then MoveIt moves the robot home.
+// Afterwards Servo is activated again (see on_home_done).
+void TeleopPublisher::go_home() {
+  if (!home_manager_) {
+    RCLCPP_WARN(node_.get_logger(), "Go home is disabled (go_home.enabled).");
+    return;
   }
 
-  bool TeleopPublisher::is_homing() const {
+  {
     std::lock_guard<std::mutex> lock(state_mutex_);
-    return state_.homing;
+    if (state_.device_blocked || state_.homing)
+      return;
 
-    GripperState TeleopPublisher::get_gripper_state() const {
-      return gripper_manager_ ? gripper_manager_->get_state() : GripperState::DISABLED;
+    stop_motion_locked();
+    state_.homing = true;
+  }
+
+  if (servo_manager_)
+    servo_manager_->deactivate();
+
+  if (!home_manager_->start([this](bool success) { on_home_done(success); })) {
+    on_home_done(false);
+    return;
+  }
+
+  print_instructions();
+}
+
+void TeleopPublisher::on_home_done(bool success) {
+  {
+    std::lock_guard<std::mutex> lock(state_mutex_);
+    if (!state_.homing)
+      return;  // cancelled by blocking the device
+
+    state_.homing = false;
+  }
+
+  if (success)
+    RCLCPP_INFO(node_.get_logger(), "Home position reached.");
+
+  if (servo_manager_ && !servo_manager_->activate()) {
+    RCLCPP_ERROR(node_.get_logger(), "MoveIt Servo activation failed, device blocked.");
+    std::lock_guard<std::mutex> lock(state_mutex_);
+    stop_motion_locked();
+    state_.device_blocked = true;
+  }
+
+  print_instructions();
+}
+
+void TeleopPublisher::toggle_gripper() {
+  if (!gripper_manager_) {
+    RCLCPP_WARN(node_.get_logger(), "Gripper control is disabled (gripper.enabled: false).");
+    return;
+  }
+
+  if (gripper_manager_->toggle())
+    print_instructions();
+}
+
+void TeleopPublisher::print_instructions() {
+  std::string str = PrintHelper::build_teleop_msg_layout_and_instructions(
+      teleop_device_, get_control_mode(), get_speed_mode(), is_device_blocked(), get_gripper_state(), is_homing());
+  RCLCPP_INFO(node_.get_logger(), "%s", str.c_str());
+}
+
+void TeleopPublisher::publish_loop() {
+  ActiveCmd cmd;
+
+  {
+    std::lock_guard<std::mutex> lock(state_mutex_);
+
+    if (!state_.have_active_cmd)
+      return;
+
+    cmd = state_.active_cmd;
+
+    if (state_.remaining_step_ticks > 0) {
+      --state_.remaining_step_ticks;
+      if (state_.remaining_step_ticks <= 0) {
+        state_.active_cmd = ActiveCmd();
+        state_.have_active_cmd = true;
+      }
+    } else if (cmd.type == ActiveCmdType::NONE) {
+      state_.have_active_cmd = false;  // once send zeros to servo
     }
+  }
 
-    const TeleopConfig& TeleopPublisher::get_config() const {
-      return config_;
-    }
+  const auto now = node_.now();
 
-    void TeleopPublisher::set_active_cmd(const ActiveCmd& cmd) {
-      std::lock_guard<std::mutex> lock(state_mutex_);
+  switch (cmd.type) {
+    case ActiveCmdType::NONE:
+      publish_stop_once(now);
+      return;
 
-      // Servo is stopped while MoveIt drives the robot home.
-      if (state_.homing)
-        return;
+    case ActiveCmdType::JOINT:
+      publish_joint(now, cmd);
+      break;
 
-      if (cmd.type == ActiveCmdType::NONE) {
-        if (state_.remaining_step_ticks > 0)
-          return;
+    case ActiveCmdType::TWIST:
+      publish_twist(now, cmd);
+      break;
+  }
+}
 
-        state_.active_cmd = cmd;
-        return;
-      }
+void TeleopPublisher::publish_stop_once(const rclcpp::Time& now) {
+  auto joint_msg = control_msgs::msg::JointJog();
+  joint_msg.header.stamp = now;
+  joint_msg.header.frame_id = config_.base_frame_id;
+  for (const auto& name : config_.joint_names) {
+    joint_msg.joint_names.push_back(name);
+    joint_msg.velocities.push_back(0.0);
+  }
 
-      state_.have_active_cmd = true;
-      if (state_.speed_mode == SpeedMode::STEP) {
-        state_.remaining_step_ticks = config_.servo_ticks_per_policy_step;
-      } else {
-        state_.remaining_step_ticks = 0;
-      }
+  joint_pub_->publish(joint_msg);
 
-      state_.active_cmd = cmd;
-    }
+  auto twist_msg = geometry_msgs::msg::TwistStamped();
+  twist_msg.header.stamp = now;
+  twist_msg.header.frame_id = config_.base_frame_id;
 
-    void TeleopPublisher::stop_motion_locked() {
-      state_.active_cmd = ActiveCmd();
-      state_.have_active_cmd = true;  // once send zeros
-      state_.remaining_step_ticks = 0;
-    }
+  twist_pub_->publish(twist_msg);
+}
 
-    void TeleopPublisher::stop_motion() {
-      std::lock_guard<std::mutex> lock(state_mutex_);
-      stop_motion_locked();
-    }
+void TeleopPublisher::publish_joint(const rclcpp::Time& now, const ActiveCmd& cmd) {
+  auto joint_msg = control_msgs::msg::JointJog();
+  joint_msg.header.stamp = now;
+  joint_msg.header.frame_id = config_.base_frame_id;
 
-    void TeleopPublisher::switch_control_mode() {
-      {
-        std::lock_guard<std::mutex> lock(state_mutex_);
-        stop_motion_locked();
-        state_.control_mode = next(state_.control_mode);
-      }
-      print_instructions();
-    }
+  joint_msg.joint_names = config_.joint_names;
+  joint_msg.velocities = cmd.joint_velocities;
 
-    void TeleopPublisher::switch_speed_mode() {
-      {
-        std::lock_guard<std::mutex> lock(state_mutex_);
-        stop_motion_locked();
-        state_.speed_mode = next(state_.speed_mode);
-      }
-      print_instructions();
-    }
+  joint_pub_->publish(joint_msg);
+}
 
-    void TeleopPublisher::block_teleop_device() {
-      bool was_homing = false;
-      {
-        std::lock_guard<std::mutex> lock(state_mutex_);
-        stop_motion_locked();
-        state_.device_blocked = true;
-        was_homing = std::exchange(state_.homing, false);
-      }
+void TeleopPublisher::publish_twist(const rclcpp::Time& now, const ActiveCmd& cmd) {
+  auto twist_msg = cmd.twist_msg;
+  twist_msg.header.stamp = now;
 
-      if (was_homing)
-        home_manager_->cancel();
+  twist_pub_->publish(twist_msg);
+}
 
-      if (servo_manager_)
-        servo_manager_->deactivate();
-
-      print_instructions();
-    }
-
-    void TeleopPublisher::unblock_teleop_device() {
-      if (servo_manager_ && !servo_manager_->activate()) {
-        RCLCPP_ERROR(node_.get_logger(), "MoveIt Servo activation failed, device stays blocked.");
-        print_instructions();
-        return;
-      }
-
-      {
-        std::lock_guard<std::mutex> lock(state_mutex_);
-        stop_motion_locked();
-        state_.device_blocked = false;
-      }
-      print_instructions();
-    }
-
-    // Servo is stopped and the initial controllers restored, then MoveIt moves the robot home.
-    // Afterwards Servo is activated again (see on_home_done).
-    void TeleopPublisher::go_home() {
-      if (!home_manager_) {
-        RCLCPP_WARN(node_.get_logger(), "Go home is disabled (go_home.enabled).");
-        return;
-      }
-
-      {
-        std::lock_guard<std::mutex> lock(state_mutex_);
-        if (state_.device_blocked || state_.homing)
-          return;
-
-        stop_motion_locked();
-        state_.homing = true;
-      }
-
-      if (servo_manager_)
-        servo_manager_->deactivate();
-
-      if (!home_manager_->start([this](bool success) { on_home_done(success); })) {
-        on_home_done(false);
-        return;
-      }
-
-      print_instructions();
-    }
-
-    void TeleopPublisher::on_home_done(bool success) {
-      {
-        std::lock_guard<std::mutex> lock(state_mutex_);
-        if (!state_.homing)
-          return;  // cancelled by blocking the device
-
-        state_.homing = false;
-      }
-
-      if (success)
-        RCLCPP_INFO(node_.get_logger(), "Home position reached.");
-
-      if (servo_manager_ && !servo_manager_->activate()) {
-        RCLCPP_ERROR(node_.get_logger(), "MoveIt Servo activation failed, device blocked.");
-        std::lock_guard<std::mutex> lock(state_mutex_);
-        stop_motion_locked();
-        state_.device_blocked = true;
-      }
-
-      print_instructions();
-
-      void TeleopPublisher::toggle_gripper() {
-        if (!gripper_manager_) {
-          RCLCPP_WARN(node_.get_logger(), "Gripper control is disabled (gripper.enabled: false).");
-          return;
-        }
-
-        if (gripper_manager_->toggle())
-          print_instructions();
-      }
-
-      void TeleopPublisher::print_instructions() {
-        std::string str = PrintHelper::build_teleop_msg_layout_and_instructions(teleop_device_, get_control_mode(),
-                                                                                get_speed_mode(), is_device_blocked(),
-                                                                                get_gripper_state(), is_homing());
-        RCLCPP_INFO(node_.get_logger(), "%s", str.c_str());
-      }
-
-      void TeleopPublisher::publish_loop() {
-        ActiveCmd cmd;
-
-        {
-          std::lock_guard<std::mutex> lock(state_mutex_);
-
-          if (!state_.have_active_cmd)
-            return;
-
-          cmd = state_.active_cmd;
-
-          if (state_.remaining_step_ticks > 0) {
-            --state_.remaining_step_ticks;
-            if (state_.remaining_step_ticks <= 0) {
-              state_.active_cmd = ActiveCmd();
-              state_.have_active_cmd = true;
-            }
-          } else if (cmd.type == ActiveCmdType::NONE) {
-            state_.have_active_cmd = false;  // once send zeros to servo
-          }
-        }
-
-        const auto now = node_.now();
-
-        switch (cmd.type) {
-          case ActiveCmdType::NONE:
-            publish_stop_once(now);
-            return;
-
-          case ActiveCmdType::JOINT:
-            publish_joint(now, cmd);
-            break;
-
-          case ActiveCmdType::TWIST:
-            publish_twist(now, cmd);
-            break;
-        }
-      }
-
-      void TeleopPublisher::publish_stop_once(const rclcpp::Time& now) {
-        auto joint_msg = control_msgs::msg::JointJog();
-        joint_msg.header.stamp = now;
-        joint_msg.header.frame_id = config_.base_frame_id;
-        for (const auto& name : config_.joint_names) {
-          joint_msg.joint_names.push_back(name);
-          joint_msg.velocities.push_back(0.0);
-        }
-
-        joint_pub_->publish(joint_msg);
-
-        auto twist_msg = geometry_msgs::msg::TwistStamped();
-        twist_msg.header.stamp = now;
-        twist_msg.header.frame_id = config_.base_frame_id;
-
-        twist_pub_->publish(twist_msg);
-      }
-
-      void TeleopPublisher::publish_joint(const rclcpp::Time& now, const ActiveCmd& cmd) {
-        auto joint_msg = control_msgs::msg::JointJog();
-        joint_msg.header.stamp = now;
-        joint_msg.header.frame_id = config_.base_frame_id;
-
-        joint_msg.joint_names = config_.joint_names;
-        joint_msg.velocities = cmd.joint_velocities;
-
-        joint_pub_->publish(joint_msg);
-      }
-
-      void TeleopPublisher::publish_twist(const rclcpp::Time& now, const ActiveCmd& cmd) {
-        auto twist_msg = cmd.twist_msg;
-        twist_msg.header.stamp = now;
-
-        twist_pub_->publish(twist_msg);
-      }
-
-    }  // namespace teleop2servo
+}  // namespace teleop2servo

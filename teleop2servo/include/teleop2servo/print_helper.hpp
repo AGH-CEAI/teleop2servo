@@ -13,15 +13,16 @@ class PrintHelper {
                                                               ControlMode control_mode,
                                                               SpeedMode speed_mode,
                                                               bool device_blocked,
-                                                              GripperState gripper_state);
+                                                              GripperState gripper_state,
+                                                              bool homing);
 
  private:
   static std::string build_banner(TeleopDevice teleop_device);
   static std::string build_status(ControlMode control_mode,
                                   SpeedMode speed_mode,
                                   bool device_blocked,
-                                  GripperState gripper_state),
-      bool homing;
+                                  GripperState gripper_state,
+                                  bool homing);
   static std::string build_gamepad_instructions(ControlMode control_mode,
                                                 bool device_blocked,
                                                 bool gripper_enabled,
@@ -37,6 +38,7 @@ class PrintHelper {
                                                  bool homing);
   static std::string build_keyboard_header(bool gripper_enabled);
   static std::string build_keyboard_layout(ControlMode control_mode, bool gripper_enabled);
+  static std::string build_keyboard_homing_info();
   static std::string build_keyboard_safety_procedure();
   static std::string build_keyboard_joint_instructions(bool gripper_enabled);
   static std::string build_keyboard_twist_instructions(bool gripper_enabled);
