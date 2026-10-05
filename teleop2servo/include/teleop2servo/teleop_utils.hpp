@@ -16,14 +16,14 @@ struct Color {
   static constexpr const char* BLUE = "\033[34m";
   static constexpr const char* CYAN = "\033[36m";
   static constexpr const char* BOLD = "\033[1m";
+  static constexpr const char* DIM = "\033[2m";
 };
 
 namespace teleop2servo {
 
 enum class TeleopDevice {
   GAMEPAD,
-  // TODO(PR#4) (re)introduce the keyboard support
-  // KEYBOARD
+  KEYBOARD,
 };
 
 enum class ControlMode { JOINT, BASE, TOOL };
@@ -42,7 +42,7 @@ struct TeleopState {
   ActiveCmd active_cmd;
   int remaining_step_ticks = 0;
   bool have_active_cmd{false};
-  bool stop_button_pressed{true};
+  bool device_blocked{true};
 };
 
 constexpr double get_speed_val(SpeedMode m) {

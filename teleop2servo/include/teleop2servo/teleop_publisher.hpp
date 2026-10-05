@@ -1,6 +1,7 @@
 #ifndef TELEOP2SERVO__TELEOP_PUBLISHER_HPP_
 #define TELEOP2SERVO__TELEOP_PUBLISHER_HPP_
 
+#include <memory>
 #include <mutex>
 #include <string>
 
@@ -8,6 +9,7 @@
 
 #include <geometry_msgs/msg/twist_stamped.hpp>
 #include <control_msgs/msg/joint_jog.hpp>
+#include "teleop2servo/servo_manager.hpp"
 #include "teleop2servo/teleop_config.hpp"
 #include "teleop2servo/teleop_utils.hpp"
 #include "teleop2servo/print_helper.hpp"
@@ -21,9 +23,10 @@ class TeleopPublisher {
 
   ControlMode get_control_mode() const;
   SpeedMode get_speed_mode() const;
-  bool get_stop_button_pressed() const;
+  bool is_device_blocked() const;
   const TeleopConfig& get_config() const;
 
+  void stop_motion();
   void set_active_cmd(const ActiveCmd& cmd);
   void switch_control_mode();
   void switch_speed_mode();
@@ -36,6 +39,9 @@ class TeleopPublisher {
   void load_parameters();
   void setup_publishers();
   void setup_timers();
+  void setup_servo_activation();
+
+  void on_shutdown();
 
   void publish_loop();
 
@@ -57,6 +63,9 @@ class TeleopPublisher {
   rclcpp::Publisher<geometry_msgs::msg::TwistStamped>::SharedPtr twist_pub_;
   rclcpp::Publisher<control_msgs::msg::JointJog>::SharedPtr joint_pub_;
   rclcpp::TimerBase::SharedPtr pub_timer_;
+
+  std::unique_ptr<ServoManager> servo_manager_;
+  rclcpp::PreShutdownCallbackHandle pre_shutdown_handle_;
 };
 
 }  // namespace teleop2servo
