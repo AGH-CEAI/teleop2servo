@@ -11,13 +11,19 @@ find_package(controller_manager_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(magic_enum CONFIG REQUIRED)
 find_package(rclcpp REQUIRED)
+find_package(rclcpp_action REQUIRED)
 find_package(rclcpp_components REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(std_srvs REQUIRED)
 
-add_library(teleop_gamepad_node SHARED src/teleop_gamepad_node.cpp src/teleop_publisher.cpp
-                                       src/servo_manager.cpp src/print_helper.cpp)
+add_library(
+  teleop_gamepad_node SHARED
+  src/teleop_gamepad_node.cpp
+  src/teleop_publisher.cpp
+  src/servo_manager.cpp
+  src/gripper_manager.cpp
+  src/print_helper.cpp)
 
 target_include_directories(
   teleop_gamepad_node PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -32,6 +38,7 @@ ament_target_dependencies(
   geometry_msgs
   magic_enum
   rclcpp
+  rclcpp_action
   rclcpp_components
   sensor_msgs
   std_msgs
@@ -52,6 +59,7 @@ add_executable(
   src/keyboard_reader.cpp
   src/teleop_publisher.cpp
   src/servo_manager.cpp
+  src/gripper_manager.cpp
   src/print_helper.cpp)
 
 target_include_directories(
@@ -65,6 +73,7 @@ ament_target_dependencies(
   geometry_msgs
   magic_enum
   rclcpp
+  rclcpp_action
   sensor_msgs
   std_msgs
   std_srvs)

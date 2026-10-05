@@ -43,3 +43,11 @@ gamepad_teleop_node:
       # std_srvs/srv/Trigger, "" = skip
       start_servo_service: "/servo_node/start_servo"   # on unblock, after switching controllers
       stop_servo_service: "/servo_node/stop_servo"     # on block / Ctrl+C, before switching back
+
+    # Gripper (control_msgs/action/GripperCommand): A toggles open / close while the device is unblocked.
+    gripper:
+      enabled: true                    # false = no gripper control
+      action_name: "/gripper_action_controller/gripper_cmd"
+      open_position: 0.025             # [m] finger joint position when open (Hand-E: 0.025 = fully open)
+      close_position: 0.0              # [m] finger joint position when closed (Hand-E: 0.0 = fully closed)
+      max_effort: 0.0                  # [N] sent in the goal

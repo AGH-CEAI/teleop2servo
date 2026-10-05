@@ -12,22 +12,26 @@ class PrintHelper {
   static std::string build_teleop_msg_layout_and_instructions(TeleopDevice teleop_device,
                                                               ControlMode control_mode,
                                                               SpeedMode speed_mode,
-                                                              bool device_blocked);
+                                                              bool device_blocked,
+                                                              GripperState gripper_state);
 
  private:
   static std::string build_banner(TeleopDevice teleop_device);
-  static std::string build_status(ControlMode control_mode, SpeedMode speed_mode, bool device_blocked);
-  static std::string build_gamepad_instructions(ControlMode control_mode, bool device_blocked);
-  static std::string build_gamepad_header();
+  static std::string build_status(ControlMode control_mode,
+                                  SpeedMode speed_mode,
+                                  bool device_blocked,
+                                  GripperState gripper_state);
+  static std::string build_gamepad_instructions(ControlMode control_mode, bool device_blocked, bool gripper_enabled);
+  static std::string build_gamepad_header(bool gripper_enabled);
   static std::string build_gamepad_safety_procedure();
   static std::string build_gamepad_joint_instructions();
   static std::string build_gamepad_twist_instructions();
-  static std::string build_keyboard_instructions(ControlMode control_mode, bool device_blocked);
-  static std::string build_keyboard_header();
-  static std::string build_keyboard_layout(ControlMode control_mode);
+  static std::string build_keyboard_instructions(ControlMode control_mode, bool device_blocked, bool gripper_enabled);
+  static std::string build_keyboard_header(bool gripper_enabled);
+  static std::string build_keyboard_layout(ControlMode control_mode, bool gripper_enabled);
   static std::string build_keyboard_safety_procedure();
-  static std::string build_keyboard_joint_instructions();
-  static std::string build_keyboard_twist_instructions();
+  static std::string build_keyboard_joint_instructions(bool gripper_enabled);
+  static std::string build_keyboard_twist_instructions(bool gripper_enabled);
   static std::string build_footer();
 };
 

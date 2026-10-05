@@ -20,6 +20,7 @@ TeleopPublisher::TeleopPublisher(rclcpp::Node& node, TeleopDevice teleop_device)
   setup_publishers();
   setup_timers();
   setup_servo_activation();
+  setup_gripper();
 
   print_instructions();
 }
@@ -68,6 +69,13 @@ void TeleopPublisher::load_parameters() {
   load_param("servo_activation.deactivate_controllers", servo.deactivate_controllers);
   load_param("servo_activation.start_servo_service", servo.start_servo_service);
   load_param("servo_activation.stop_servo_service", servo.stop_servo_service);
+
+  auto& gripper = config_.gripper;
+  load_param("gripper.enabled", gripper.enabled);
+  load_param("gripper.action_name", gripper.action_name);
+  load_param("gripper.open_position", gripper.open_position);
+  load_param("gripper.close_position", gripper.close_position);
+  load_param("gripper.max_effort", gripper.max_effort);
 }
 
 void TeleopPublisher::setup_publishers() {
@@ -87,6 +95,11 @@ void TeleopPublisher::setup_servo_activation() {
 
   pre_shutdown_handle_ =
       node_.get_node_base_interface()->get_context()->add_pre_shutdown_callback([this]() { on_shutdown(); });
+}
+
+void TeleopPublisher::setup_gripper() {
+  if (config_.gripper.enabled)
+    gripper_manager_ = std::make_unique<GripperManager>(node_, config_.gripper);
 }
 
 void TeleopPublisher::on_shutdown() {
@@ -109,6 +122,10 @@ SpeedMode TeleopPublisher::get_speed_mode() const {
 bool TeleopPublisher::is_device_blocked() const {
   std::lock_guard<std::mutex> lock(state_mutex_);
   return state_.device_blocked;
+}
+
+GripperState TeleopPublisher::get_gripper_state() const {
+  return gripper_manager_ ? gripper_manager_->get_state() : GripperState::DISABLED;
 }
 
 const TeleopConfig& TeleopPublisher::get_config() const {
@@ -193,9 +210,19 @@ void TeleopPublisher::unblock_teleop_device() {
   print_instructions();
 }
 
+void TeleopPublisher::toggle_gripper() {
+  if (!gripper_manager_) {
+    RCLCPP_WARN(node_.get_logger(), "Gripper control is disabled (gripper.enabled: false).");
+    return;
+  }
+
+  if (gripper_manager_->toggle())
+    print_instructions();
+}
+
 void TeleopPublisher::print_instructions() {
-  std::string str = PrintHelper::build_teleop_msg_layout_and_instructions(teleop_device_, get_control_mode(),
-                                                                          get_speed_mode(), is_device_blocked());
+  std::string str = PrintHelper::build_teleop_msg_layout_and_instructions(
+      teleop_device_, get_control_mode(), get_speed_mode(), is_device_blocked(), get_gripper_state());
   RCLCPP_INFO(node_.get_logger(), "%s", str.c_str());
 }
 
