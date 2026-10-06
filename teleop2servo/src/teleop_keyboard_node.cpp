@@ -61,7 +61,6 @@ void TeleopKeyboardNode::handle_key_input() {
   const double since_last_key = std::chrono::duration<double>(now - last_key_time_).count();
 
   // A key arrived: classify it as a new press or an auto-repeat of the held key.
-  // Classi
   if (const auto key = read_last_key()) {
     const bool new_press = !held_key_ || *held_key_ != *key;
     const bool autorepeat = !new_press && since_last_key < keyboard_config_.key_repeat_timeout_s;
@@ -152,7 +151,7 @@ bool TeleopKeyboardNode::check_safety_procedure(char c, bool new_press) {
   return false;
 }
 
-// Returns true for state keys (block / mode / speed); they act only on a new press, not on repeats.
+// Returns true for state keys (block / mode / speed / home); they act only on a new press, not on repeats.
 bool TeleopKeyboardNode::check_state_buttons(char c, bool new_press) {
   switch (c) {
     case KeyboardMapping::block_device:
@@ -168,6 +167,11 @@ bool TeleopKeyboardNode::check_state_buttons(char c, bool new_press) {
     case KeyboardMapping::switch_speed_mode:
       if (new_press)
         teleop_publisher_.switch_speed_mode();
+      return true;
+
+    case KeyboardMapping::go_home:
+      if (new_press)
+        teleop_publisher_.go_home();
       return true;
 
     default:

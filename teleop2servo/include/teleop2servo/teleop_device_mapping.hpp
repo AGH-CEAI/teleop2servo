@@ -43,6 +43,7 @@ struct GamepadMapping {
   static constexpr Button block_device = Button::b;
   static constexpr Button switch_control_mode = Button::x;
   static constexpr Button switch_speed_mode = Button::y;
+  static constexpr Button go_home = Button::right_arrow;
   static constexpr Button toggle_gripper = Button::a;
 
   static constexpr Axis x_axis = Axis::left_stick_x;
@@ -88,6 +89,7 @@ struct KeyboardMapping {
   static constexpr char block_device = '*';
   static constexpr char switch_control_mode = '~';
   static constexpr char switch_speed_mode = '$';
+  static constexpr char go_home = '?';
   static constexpr char toggle_gripper = 'g';
 
   static constexpr char x_positive = 's';

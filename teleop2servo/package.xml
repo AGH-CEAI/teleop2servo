@@ -19,6 +19,7 @@
   <depend>controller_manager_msgs</depend>
   <depend>geometry_msgs</depend>
   <depend>magic_enum</depend>
+  <depend>moveit_msgs</depend>
   <depend>rclcpp</depend>
   <depend>rclcpp_action</depend>
   <depend>rclcpp_components</depend>

@@ -10,6 +10,7 @@ find_package(control_msgs REQUIRED)
 find_package(controller_manager_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(magic_enum CONFIG REQUIRED)
+find_package(moveit_msgs REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclcpp_action REQUIRED)
 find_package(rclcpp_components REQUIRED)
@@ -22,6 +23,7 @@ add_library(
   src/teleop_gamepad_node.cpp
   src/teleop_publisher.cpp
   src/servo_manager.cpp
+  src/home_manager.cpp
   src/gripper_manager.cpp
   src/print_helper.cpp)
 
@@ -37,6 +39,7 @@ ament_target_dependencies(
   controller_manager_msgs
   geometry_msgs
   magic_enum
+  moveit_msgs
   rclcpp
   rclcpp_action
   rclcpp_components
@@ -59,6 +62,7 @@ add_executable(
   src/keyboard_reader.cpp
   src/teleop_publisher.cpp
   src/servo_manager.cpp
+  src/home_manager.cpp
   src/gripper_manager.cpp
   src/print_helper.cpp)
 
@@ -72,6 +76,7 @@ ament_target_dependencies(
   controller_manager_msgs
   geometry_msgs
   magic_enum
+  moveit_msgs
   rclcpp
   rclcpp_action
   sensor_msgs

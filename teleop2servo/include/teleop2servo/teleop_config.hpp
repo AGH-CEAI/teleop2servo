@@ -18,6 +18,22 @@ struct ServoActivationConfig {
   std::string stop_servo_service = "/servo_node/stop_servo";
 };
 
+struct HomeConfig {
+  bool enabled = false;
+  double server_timeout_s = 2.0;
+
+  std::string move_group_action = "/move_action";
+  std::string planning_group = "aegis_arm";
+
+  // In the order of TeleopConfig::joint_names.
+  std::vector<double> joint_positions = {0.0, -2.094395, 2.094395, -1.570796, -1.570796, 0.0};
+  double joint_tolerance = 0.001;
+
+  double max_velocity_scaling = 0.1;
+  double max_acceleration_scaling = 0.1;
+  double planning_time_s = 5.0;
+};
+
 struct GripperConfig {
   bool enabled = false;
   std::string action_name = "/gripper_action_controller/gripper_cmd";
@@ -52,6 +68,7 @@ struct TeleopConfig {
   double twist_ang_cont_max = 0.8;
 
   ServoActivationConfig servo_activation;
+  HomeConfig go_home;
   GripperConfig gripper;
 };
 

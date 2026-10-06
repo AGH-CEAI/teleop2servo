@@ -4,6 +4,7 @@
 #include <chrono>
 #include <mutex>
 #include <cmath>
+#include <utility>
 
 #include <rclcpp/rclcpp.hpp>
 
@@ -20,6 +21,7 @@ TeleopPublisher::TeleopPublisher(rclcpp::Node& node, TeleopDevice teleop_device)
   setup_publishers();
   setup_timers();
   setup_servo_activation();
+  setup_go_home();
   setup_gripper();
 
   print_instructions();
@@ -70,6 +72,17 @@ void TeleopPublisher::load_parameters() {
   load_param("servo_activation.start_servo_service", servo.start_servo_service);
   load_param("servo_activation.stop_servo_service", servo.stop_servo_service);
 
+  auto& home = config_.go_home;
+  load_param("go_home.enabled", home.enabled);
+  load_param("go_home.server_timeout_s", home.server_timeout_s);
+  load_param("go_home.move_group_action", home.move_group_action);
+  load_param("go_home.planning_group", home.planning_group);
+  load_param("go_home.joint_positions", home.joint_positions);
+  load_param("go_home.joint_tolerance", home.joint_tolerance);
+  load_param("go_home.max_velocity_scaling", home.max_velocity_scaling);
+  load_param("go_home.max_acceleration_scaling", home.max_acceleration_scaling);
+  load_param("go_home.planning_time_s", home.planning_time_s);
+
   auto& gripper = config_.gripper;
   load_param("gripper.enabled", gripper.enabled);
   load_param("gripper.action_name", gripper.action_name);
@@ -97,6 +110,20 @@ void TeleopPublisher::setup_servo_activation() {
       node_.get_node_base_interface()->get_context()->add_pre_shutdown_callback([this]() { on_shutdown(); });
 }
 
+void TeleopPublisher::setup_go_home() {
+  const auto& home = config_.go_home;
+  if (!home.enabled)
+    return;
+
+  if (home.joint_positions.size() != config_.joint_names.size()) {
+    RCLCPP_ERROR(node_.get_logger(), "go_home.joint_positions has %zu values, joint_names has %zu. Go home disabled.",
+                 home.joint_positions.size(), config_.joint_names.size());
+    return;
+  }
+
+  home_manager_ = std::make_unique<HomeManager>(node_, home, config_.joint_names);
+}
+
 void TeleopPublisher::setup_gripper() {
   if (config_.gripper.enabled)
     gripper_manager_ = std::make_unique<GripperManager>(node_, config_.gripper);
@@ -104,6 +131,9 @@ void TeleopPublisher::setup_gripper() {
 
 void TeleopPublisher::on_shutdown() {
   stop_motion();
+
+  if (home_manager_)
+    home_manager_->cancel();
 
   if (servo_manager_)
     servo_manager_->deactivate();
@@ -124,6 +154,11 @@ bool TeleopPublisher::is_device_blocked() const {
   return state_.device_blocked;
 }
 
+bool TeleopPublisher::is_homing() const {
+  std::lock_guard<std::mutex> lock(state_mutex_);
+  return state_.homing;
+}
+
 GripperState TeleopPublisher::get_gripper_state() const {
   return gripper_manager_ ? gripper_manager_->get_state() : GripperState::DISABLED;
 }
@@ -134,6 +169,10 @@ const TeleopConfig& TeleopPublisher::get_config() const {
 
 void TeleopPublisher::set_active_cmd(const ActiveCmd& cmd) {
   std::lock_guard<std::mutex> lock(state_mutex_);
+
+  // Servo is stopped while MoveIt drives the robot home.
+  if (state_.homing)
+    return;
 
   if (cmd.type == ActiveCmdType::NONE) {
     if (state_.remaining_step_ticks > 0)
@@ -183,11 +222,16 @@ void TeleopPublisher::switch_speed_mode() {
 }
 
 void TeleopPublisher::block_teleop_device() {
+  bool was_homing = false;
   {
     std::lock_guard<std::mutex> lock(state_mutex_);
     stop_motion_locked();
     state_.device_blocked = true;
+    was_homing = std::exchange(state_.homing, false);
   }
+
+  if (was_homing)
+    home_manager_->cancel();
 
   if (servo_manager_)
     servo_manager_->deactivate();
@@ -210,6 +254,56 @@ void TeleopPublisher::unblock_teleop_device() {
   print_instructions();
 }
 
+// Servo is stopped and the initial controllers restored, then MoveIt moves the robot home.
+// Afterwards Servo is activated again (see on_home_done).
+void TeleopPublisher::go_home() {
+  if (!home_manager_) {
+    RCLCPP_WARN(node_.get_logger(), "Go home is disabled (go_home.enabled).");
+    return;
+  }
+
+  {
+    std::lock_guard<std::mutex> lock(state_mutex_);
+    if (state_.device_blocked || state_.homing)
+      return;
+
+    stop_motion_locked();
+    state_.homing = true;
+  }
+
+  if (servo_manager_)
+    servo_manager_->deactivate();
+
+  if (!home_manager_->start([this](bool success) { on_home_done(success); })) {
+    on_home_done(false);
+    return;
+  }
+
+  print_instructions();
+}
+
+void TeleopPublisher::on_home_done(bool success) {
+  {
+    std::lock_guard<std::mutex> lock(state_mutex_);
+    if (!state_.homing)
+      return;  // cancelled by blocking the device
+
+    state_.homing = false;
+  }
+
+  if (success)
+    RCLCPP_INFO(node_.get_logger(), "Home position reached.");
+
+  if (servo_manager_ && !servo_manager_->activate()) {
+    RCLCPP_ERROR(node_.get_logger(), "MoveIt Servo activation failed, device blocked.");
+    std::lock_guard<std::mutex> lock(state_mutex_);
+    stop_motion_locked();
+    state_.device_blocked = true;
+  }
+
+  print_instructions();
+}
+
 void TeleopPublisher::toggle_gripper() {
   if (!gripper_manager_) {
     RCLCPP_WARN(node_.get_logger(), "Gripper control is disabled (gripper.enabled: false).");
@@ -222,7 +316,7 @@ void TeleopPublisher::toggle_gripper() {
 
 void TeleopPublisher::print_instructions() {
   std::string str = PrintHelper::build_teleop_msg_layout_and_instructions(
-      teleop_device_, get_control_mode(), get_speed_mode(), is_device_blocked(), get_gripper_state());
+      teleop_device_, get_control_mode(), get_speed_mode(), is_device_blocked(), get_gripper_state(), is_homing());
   RCLCPP_INFO(node_.get_logger(), "%s", str.c_str());
 }
 

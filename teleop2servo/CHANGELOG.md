@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+* [PR-15](https://github.com/AGH-CEAI/teleop2servo/pull/15) - Add go-home button and procedure.
 * [PR-13](https://github.com/AGH-CEAI/teleop2servo/pull/13) - Add gripper control from the teleop device.
 * [PR-12](https://github.com/AGH-CEAI/teleop2servo/pull/12) - Add switch controllers.
 * [PR-04](https://github.com/AGH-CEAI/teleop2servo/pull/4) - Repair joint control and add cartesian control from the keyboard.
